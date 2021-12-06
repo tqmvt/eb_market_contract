@@ -1,11 +1,14 @@
 require("@nomiclabs/hardhat-ethers");
 require('@openzeppelin/hardhat-upgrades');
-
+require("@nomiclabs/hardhat-waffle");
+require("solidity-coverage");
+require("hardhat-gas-reporter");
+require("@nomiclabs/hardhat-etherscan");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-const key = process.env.SIGNER
+// const key = process.env.SIGNER
 module.exports = {
   solidity: {
     version: "0.8.4",
@@ -16,7 +19,7 @@ module.exports = {
       }
     }
   },
-  defaultNetwork: "cronos_testnet",
+  // defaultNetwork: "cronos_testnet",
   networks : {
     hardhat :{
 
@@ -24,12 +27,12 @@ module.exports = {
     cronos : {
       url : "https://evm-cronos.crypto.org",
       chainId: 25,
-      acounts: [key],
+      acounts: process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
     },
     cronos_testnet : {
       url : "https://cronos-testnet-3.crypto.org:8545",
       chainId : 338,
-      accounts: [key]
+      accounts:  process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
     }
   },
   paths: {

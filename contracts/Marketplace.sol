@@ -14,111 +14,8 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import "./SafePct.sol";
+import "./IterableMapping.sol";
 
-enum State {ACTIVE, SOLD, CANCELLED}
-
-struct Listing {
-    uint256 listingId;
-    uint256 nftId;
-    address seller;
-    address nft;
-    uint256 price;
-    uint256 fee;
-    State state;
-    address purchaser;
-    bool is1155;
-    uint256 listingTime;
-    uint256 saleTime;
-    uint256 endingTime;
-    uint256 royalty;
-}
-
-library IterableMapping{
-    struct Map {
-        bytes32[] keys;
-        mapping(uint256 => bytes32) idToKey;
-        mapping(bytes32 => Listing) values;
-        mapping(bytes32 => uint) indexOf;
-        mapping(bytes32 => bool) inserted;
-    }
-
-    function contains(Map storage map, bytes32 key) public view returns (bool){
-        return map.inserted[key];
-    }
-
-    function containsId(Map storage map, uint256 id) public view returns (bool){
-        return map.idToKey[id] != bytes32(0);
-    }
-
-    function get(Map storage map, bytes32 key) public view returns (Listing storage) {
-        return map.values[key];
-    }
-
-    function getById(Map storage map, uint256 id) public view returns (Listing storage){
-        return get(map, map.idToKey[id]);
-    }
-
-    function keyForId(Map storage map, uint256 id) public view returns (bytes32){
-        return map.idToKey[id];
-    }
-
-    function size(Map storage map) public view returns (uint) {
-        return map.keys.length;
-    }
-
-    function paged(Map storage map, uint256 _page, uint16 _pageSize) external view returns (Listing[] memory){
-        if(size(map) == 0){
-            return new Listing[](0);
-        }
-        Listing[] memory result = new Listing[](_pageSize);
-        uint16 returnCounter = 0;
-        for(uint i = _pageSize * _page - _pageSize; i < _pageSize * _page; i++ ){
-            if(i < size(map) - 1){
-                break;
-            }
-            result[returnCounter] = get(map, map.keys[i]);
-            returnCounter++;
-        }
-        return result;
-    }
-
-    function set(
-        Map storage map,
-        bytes32 key,
-        Listing memory val
-    ) public {
-        if (map.inserted[key]) {
-            map.values[key] = val;
-            map.idToKey[val.listingId] = key;
-        } else {
-            map.inserted[key] = true;
-            map.values[key] = val;
-            map.indexOf[key] = map.keys.length;
-            map.keys.push(key);
-            map.idToKey[val.listingId] = key;
-        }
-    }
-
-    function remove(Map storage map, bytes32 key) public {
-        if (!map.inserted[key]) {
-            return;
-        }
-
-        delete map.idToKey[map.values[key].listingId];
-        delete map.inserted[key];
-        delete map.values[key];
-
-        uint index = map.indexOf[key];
-        uint lastIndex = map.keys.length - 1;
-        bytes32 lastKey = map.keys[lastIndex];
-
-        map.indexOf[lastKey] = index;
-        delete map.indexOf[key];
-
-        map.keys[index] = lastKey;
-        map.keys.pop();
-    }
-}
 
 contract Marketplace is 
     Initializable, 
@@ -132,7 +29,9 @@ contract Marketplace is
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using AddressUpgradeable for address payable;
     using ERC165Checker for address;
+ 
     using IterableMapping for IterableMapping.Map;
+    using IterableMapping for IterableMapping.Listing;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant STAFF_ROLE = keccak256("STAFF_ROLE");
@@ -153,9 +52,9 @@ contract Marketplace is
 
     IERC1155 private memberships;
 
-    uint16 public vipFee = 150;
-    uint16 public memberFee = 300;
-    uint16 public regFee = 500;
+    uint16 public vipFee;
+    uint16 public memberFee;
+    uint16 public regFee;
 
     IterableMapping.Map private activeListings;
     IterableMapping.Map private completeListings;
@@ -177,6 +76,9 @@ contract Marketplace is
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(UPGRADER_ROLE, msg.sender);
         memberships = _memberships;
+        vipFee = 150;
+        memberFee = 300;
+        regFee = 500;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -185,15 +87,15 @@ contract Marketplace is
         override
     {}
 
-    function totalActive() public view returns (uint256) {
+    function totalActive() external view returns (uint256) {
         return activeListings.size();
     }
 
-    function activeListing(uint256 _listingId) public view returns (Listing memory){
+    function activeListing(uint256 _listingId) external view returns (IterableMapping.Listing memory){
         return activeListings.getById(_listingId);
     } 
 
-    function pagedActive(uint256 _page, uint16 _pageSize) external view returns (Listing[] memory){
+    function pagedActive(uint256 _page, uint16 _pageSize) external view returns ( IterableMapping.Listing[] memory){
         return activeListings.paged(_page, _pageSize);
     }
 
@@ -201,7 +103,7 @@ contract Marketplace is
         return completeListings.size();
     }
 
-    function pagedComplete(uint256 _page, uint16 _pageSize) external view returns (Listing[] memory){
+    function pagedComplete(uint256 _page, uint16 _pageSize) external view returns ( IterableMapping.Listing[] memory){
         return completeListings.paged(_page, _pageSize);
     }
 
@@ -209,7 +111,7 @@ contract Marketplace is
         return cancelledListings.size();
     }
 
-    function pagedCancelled(uint256 _page, uint16 _pageSize) external view returns (Listing[] memory){
+    function pagedCancelled(uint256 _page, uint16 _pageSize) external view returns ( IterableMapping.Listing[] memory){
         return cancelledListings.paged(_page, _pageSize);
     }
 
@@ -233,7 +135,7 @@ contract Marketplace is
         Royalty storage royalty = royalties[_nft];
 
         if(activeListings.contains(listingHash)){
-            Listing storage listing = activeListings.get(listingHash);
+            IterableMapping.Listing storage listing = activeListings.get(listingHash);
             listing.price = _price;
             listing.fee = _price.mulDiv(fee(msg.sender), SCALE);
             listing.royalty = _price.mulDiv(royalty.percent, SCALE);
@@ -241,14 +143,13 @@ contract Marketplace is
             return;
         }
 
-        Listing memory newListing;
+        IterableMapping.Listing memory newListing;
         newListing.listingId = listingId.current();
         newListing.nftId = _id;
         newListing.seller = msg.sender;
         newListing.nft = address(_nft);
         newListing.price = _price;
         newListing.fee = _price.mulDiv(fee(msg.sender), SCALE);
-        newListing.state = State.ACTIVE;
         newListing.is1155 = is1155;
         newListing.listingTime = block.timestamp;
         newListing.royalty = _price.mulDiv(royalty.percent, SCALE);
@@ -260,7 +161,7 @@ contract Marketplace is
 
     function makePurchase(uint256 _id) public  payable {
         require(activeListings.containsId(_id), "invalid id");
-        Listing memory listing = activeListings.getById(_id);
+        IterableMapping.Listing memory listing = activeListings.getById(_id);
         
         if(listing.is1155){
             require(IERC1155(listing.nft).isApprovedForAll(listing.seller, address(this)), "seller revoked approval");
@@ -275,7 +176,7 @@ contract Marketplace is
             IERC721(listing.nft).safeTransferFrom(listing.seller, msg.sender, listing.nftId);
         }
         
-        _asyncTransfer(listing.seller, listing.price - listing.fee);
+        _asyncTransfer(listing.seller, listing.price - listing.fee - listing.royalty);
         address ipHolder = royalties[listing.nft].ipHolder;
         if(ipHolder != address(0)){
             _asyncTransfer(ipHolder, listing.royalty);
@@ -283,16 +184,14 @@ contract Marketplace is
         activeListings.remove(activeListings.keyForId(_id));
         listing.purchaser = msg.sender;
         listing.saleTime = block.timestamp;
-        listing.state = State.SOLD;
         completeListings.set(keccak256(abi.encodePacked(_id)), listing);
         emit Sold(_id);
     }
 
     function cancelListing(uint256 _id) public {
         require(activeListings.containsId(_id), "invalid id");
-        Listing memory listing = activeListings.getById(_id);
+        IterableMapping.Listing memory listing = activeListings.getById(_id);
         require(listing.seller == msg.sender || hasRole(STAFF_ROLE, msg.sender), "not lister");
-        listing.state = State.CANCELLED;
         listing.saleTime = block.timestamp;
         activeListings.remove(activeListings.keyForId(_id));
         cancelledListings.set(keccak256(abi.encodePacked(_id)), listing);
@@ -333,9 +232,10 @@ contract Marketplace is
         payable(msg.sender).sendValue(address(this).balance);
     }
 
-    function updateFees(uint16 _regFee, uint16 _memFee) public onlyRole(DEFAULT_ADMIN_ROLE){
+    function updateFees(uint16 _regFee, uint16 _memFee, uint16 _vipFee) public onlyRole(DEFAULT_ADMIN_ROLE){
         regFee = _regFee;
         memberFee = _memFee;
+        vipFee = _vipFee;
     }
 
 }
