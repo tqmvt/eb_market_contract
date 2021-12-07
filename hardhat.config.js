@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
+require('hardhat-abi-exporter');
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -43,5 +44,12 @@ module.exports = {
   },
   mocha: {
     timeout: 20000
+  },
+  abiExporter: {
+    path: './artifacts/abi',
+    clear: true,
+    flat: true,
+    spacing: 2,
+    pretty: true,
   }
 };

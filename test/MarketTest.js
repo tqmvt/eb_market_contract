@@ -79,6 +79,14 @@ describe("Marketplace", async() => {
         await nftWithRoyalties.safeMint(alice.address); //0 alice
     });
 
+    it('should only let admin upgrade', async () => {
+        let v2 = await ethers.getContractFactory("MarketplaceV2");
+        await expect(upgrades.upgradeProxy(market.address, v2)).to.be.reverted;
+        v2 = await ethers.getContractFactory("MarketplaceV2", admin);
+        const upgrade = await upgrades.upgradeProxy(market.address, v2);
+        await expect(await upgrade.name()).to.eq("v2");
+    })
+
 
     it('should report the total active listings', async () => {
         await nftContract.connect(alice).setApprovalForAll(market.address, true);
