@@ -95,6 +95,14 @@ contract Marketplace is
         return activeListings.getById(_listingId);
     } 
 
+    function completeListing(uint256 _listingId) external view returns (IterableMapping.Listing memory){
+        return completeListings.getById(_listingId);
+    }
+
+    function cancelledListing(uint256 _listingId) external view returns (IterableMapping.Listing memory){
+        return cancelledListings.getById(_listingId);
+    }
+
     function pagedActive(uint256 _page, uint16 _pageSize) external view returns ( IterableMapping.Listing[] memory){
         return activeListings.paged(_page, _pageSize);
     }

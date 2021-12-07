@@ -57,7 +57,7 @@ library IterableMapping{
         Listing[] memory result = new Listing[](_pageSize);
         uint16 returnCounter = 0;
         for(uint i = _pageSize * _page - _pageSize; i < _pageSize * _page; i++ ){
-            if(i < size(map) - 1){
+            if(i < size(map)){
                 break;
             }
             result[returnCounter] = get(map, map.keys[i]);
