@@ -262,19 +262,19 @@
           {
             "contract": "Marketplace",
             "label": "activeListings",
-            "type": "t_struct(Map)7893_storage",
+            "type": "t_struct(Map)8281_storage",
             "src": "contracts/Marketplace.sol:59"
           },
           {
             "contract": "Marketplace",
             "label": "completeListings",
-            "type": "t_struct(Map)7893_storage",
+            "type": "t_struct(Map)8281_storage",
             "src": "contracts/Marketplace.sol:60"
           },
           {
             "contract": "Marketplace",
             "label": "cancelledListings",
-            "type": "t_struct(Map)7893_storage",
+            "type": "t_struct(Map)8281_storage",
             "src": "contracts/Marketplace.sol:61"
           },
           {
@@ -286,7 +286,7 @@
           {
             "contract": "Marketplace",
             "label": "royalties",
-            "type": "t_mapping(t_address,t_struct(Royalty)8339_storage)",
+            "type": "t_mapping(t_address,t_struct(Royalty)8727_storage)",
             "src": "contracts/Marketplace.sol:65"
           }
         ],
@@ -297,7 +297,7 @@
           "t_uint16": {
             "label": "uint16"
           },
-          "t_struct(Map)7893_storage": {
+          "t_struct(Map)8281_storage": {
             "label": "struct IterableMapping.Map",
             "members": [
               {
@@ -310,7 +310,7 @@
               },
               {
                 "label": "values",
-                "type": "t_mapping(t_bytes32,t_struct(Listing)7872_storage)"
+                "type": "t_mapping(t_bytes32,t_struct(Listing)8260_storage)"
               },
               {
                 "label": "indexOf",
@@ -334,10 +334,10 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_bytes32,t_struct(Listing)7872_storage)": {
+          "t_mapping(t_bytes32,t_struct(Listing)8260_storage)": {
             "label": "mapping(bytes32 => struct IterableMapping.Listing)"
           },
-          "t_struct(Listing)7872_storage": {
+          "t_struct(Listing)8260_storage": {
             "label": "struct IterableMapping.Listing",
             "members": [
               {
@@ -411,10 +411,10 @@
               }
             ]
           },
-          "t_mapping(t_address,t_struct(Royalty)8339_storage)": {
+          "t_mapping(t_address,t_struct(Royalty)8727_storage)": {
             "label": "mapping(address => struct Marketplace.Royalty)"
           },
-          "t_struct(Royalty)8339_storage": {
+          "t_struct(Royalty)8727_storage": {
             "label": "struct Marketplace.Royalty",
             "members": [
               {

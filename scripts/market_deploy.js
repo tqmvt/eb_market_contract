@@ -9,10 +9,11 @@ async function main() {
     const market = await upgrades.deployProxy(contractFactory, [memberships], {kind: 'uups'});
     console.log(`market deployed to ${market.address}`);
 
+    await market.grantRole(await market.DEFAULT_ADMIN_ROLE(), admin);
     await market.grantRole(await market.UPGRADER_ROLE(), admin);
     await market.grantRole(await market.STAFF_ROLE(), admin);
     await market.revokeRole(await market.DEFAULT_ADMIN_ROLE(), deployer.address);
-    await market.revokeRole(await market.UPGRADER_ROLE(), deployer.address);
+    // await market.revokeRole(await market.UPGRADER_ROLE(), deployer.address);
     console.log('permissions set');
 }
 

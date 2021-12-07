@@ -87,6 +87,22 @@ describe("Marketplace", async() => {
         await expect(await upgrade.name()).to.eq("v2");
     })
 
+    it('should tell me bytestrings', async () => {
+        const a = await market.DEFAULT_ADMIN_ROLE();
+        const s = await market.STAFF_ROLE();
+        const u = await market.UPGRADER_ROLE();
+        // console.log(`admin: ${admin}  format: ${ethers.utils.formatBytes32String(admin)}`)
+        // console.log(`staff: ${staff}  format: ${ethers.utils.formatBytes32String(staff)}`)
+        // console.log(`admin: ${upgrader}  format: ${ethers.utils.formatBytes32String(upgrader)}`)
+        console.log(`admin: ${a}  `)
+        console.log(`staff: ${s}  `)
+        console.log(`admin: ${u}  `)
+        console.log(`admin: ${'0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3'}`)
+
+        let test = await market.hasRole('0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3', admin.address);
+        console.log('.....')
+        console.log(test)
+    });
 
     it('should report the total active listings', async () => {
         await nftContract.connect(alice).setApprovalForAll(market.address, true);

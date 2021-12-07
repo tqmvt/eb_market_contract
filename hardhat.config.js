@@ -45,11 +45,11 @@ module.exports = {
   mocha: {
     timeout: 20000
   },
-  abiExporter: {
-    path: './artifacts/abi',
-    clear: true,
-    flat: true,
-    spacing: 2,
-    pretty: true,
-  }
+  // abiExporter: {
+  //   path: './artifacts/abi',
+  //   clear: true,
+  //   flat: true,
+  //   spacing: 2,
+  //   pretty: true,
+  // }
 };

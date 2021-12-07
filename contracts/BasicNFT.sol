@@ -15,13 +15,13 @@ contract BasicNFT is ERC721Enumerable, Ownable {
         
     }
 
-    function safeMint(address to) public onlyOwner {
+    function safeMint(address to) public  {
         _safeMint(to, _tokenIdCounter.current());
         _tokenIdCounter.increment();
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(tokenId < totalSupply(), "");
-        return "ipfs://QmYbg4LjbfitYFMrzsKsrynyXBqybeARGv4mZtGm64W4kg/1.json";
+        return "ipfs://QmYbg4LjbfitYFMrzsKsrynyXBqybeARGv4mZtGm64W4kg/14.json";
     }
 }
