@@ -104,6 +104,18 @@ describe("Marketplace", async() => {
         console.log(test)
     });
 
+    it('should return paged items', async () => {
+        await makeListing(alice, 0);
+        let page;
+        try{
+            page = await market.pagedActive(1,2);
+        }catch(error){
+            console.log(error);
+        }
+        await makeListing(alice, 1);
+        page = await market.pagedActive(1,2);
+    });
+
     it('should report the total active listings', async () => {
         await nftContract.connect(alice).setApprovalForAll(market.address, true);
         await makeListing(alice, 0);
