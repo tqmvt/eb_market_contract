@@ -28,7 +28,7 @@ module.exports = {
     cronos : {
       url : "https://evm-cronos.crypto.org",
       chainId: 25,
-      acounts: process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
+      accounts: process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
     },
     cronos_testnet : {
       url : "https://cronos-testnet-3.crypto.org:8545",

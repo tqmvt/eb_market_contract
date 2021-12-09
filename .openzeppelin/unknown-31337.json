@@ -153,7 +153,7 @@
     },
     {
       "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "txHash": "0x8499eb9f0fb4b144eb23abf5f431b375fa7fb5e5a6d5c4dc1aae053ec0f428d2",
+      "txHash": "0xfc3c14080e69747026f700693bbc14f5329cc69b9280a650e1d5fe25c1c7e8c7",
       "kind": "uups"
     }
   ],
@@ -458,9 +458,9 @@
         }
       }
     },
-    "4e4aafa762aa321f16e920e294b0c34624c89b7b56fe0a66f16fd9f14d0b90cc": {
+    "3d511cce6f19b2f10461bc4403e81bf5160b268de828bdb93ce366302534d033": {
       "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "txHash": "0x9de2d566f551d6a45518dc6da361494c58a8314fca65f6005959cfac847d9dce",
+      "txHash": "0x41955312ff4a850ed06ae8d3ef1ffd3aca3a214beb8051781d472576c7edfc98",
       "layout": {
         "storage": [
           {
@@ -562,19 +562,19 @@
           {
             "contract": "Marketplace",
             "label": "activeListings",
-            "type": "t_struct(Map)8280_storage",
+            "type": "t_struct(Map)8279_storage",
             "src": "contracts/Marketplace.sol:59"
           },
           {
             "contract": "Marketplace",
             "label": "completeListings",
-            "type": "t_struct(Map)8280_storage",
+            "type": "t_struct(Map)8279_storage",
             "src": "contracts/Marketplace.sol:60"
           },
           {
             "contract": "Marketplace",
             "label": "cancelledListings",
-            "type": "t_struct(Map)8280_storage",
+            "type": "t_struct(Map)8279_storage",
             "src": "contracts/Marketplace.sol:61"
           },
           {
@@ -586,7 +586,7 @@
           {
             "contract": "Marketplace",
             "label": "royalties",
-            "type": "t_mapping(t_address,t_struct(Royalty)8757_storage)",
+            "type": "t_mapping(t_address,t_struct(Royalty)8723_storage)",
             "src": "contracts/Marketplace.sol:65"
           }
         ],
@@ -597,7 +597,7 @@
           "t_uint16": {
             "label": "uint16"
           },
-          "t_struct(Map)8280_storage": {
+          "t_struct(Map)8279_storage": {
             "label": "struct IterableMapping.Map",
             "members": [
               {
@@ -610,7 +610,7 @@
               },
               {
                 "label": "values",
-                "type": "t_mapping(t_bytes32,t_struct(Listing)8259_storage)"
+                "type": "t_mapping(t_bytes32,t_struct(Listing)8258_storage)"
               },
               {
                 "label": "indexOf",
@@ -634,10 +634,10 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_bytes32,t_struct(Listing)8259_storage)": {
+          "t_mapping(t_bytes32,t_struct(Listing)8258_storage)": {
             "label": "mapping(bytes32 => struct IterableMapping.Listing)"
           },
-          "t_struct(Listing)8259_storage": {
+          "t_struct(Listing)8258_storage": {
             "label": "struct IterableMapping.Listing",
             "members": [
               {
@@ -711,10 +711,10 @@
               }
             ]
           },
-          "t_mapping(t_address,t_struct(Royalty)8757_storage)": {
+          "t_mapping(t_address,t_struct(Royalty)8723_storage)": {
             "label": "mapping(address => struct Marketplace.Royalty)"
           },
-          "t_struct(Royalty)8757_storage": {
+          "t_struct(Royalty)8723_storage": {
             "label": "struct Marketplace.Royalty",
             "members": [
               {
