@@ -9,8 +9,10 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
+import "./RewardsPool.sol";
 
 
 contract MembershipStaker is Initializable, 
@@ -21,6 +23,7 @@ IMembershipStaker,
  UUPSUpgradeable{
 
      using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+     using CountersUpgradeable for CountersUpgradeable.Counter;
 
      uint64 private constant VIP_ID = 2;
      IERC1155 private membershipContract;
@@ -28,6 +31,19 @@ IMembershipStaker,
     uint256 private stakeCount;
     EnumerableSetUpgradeable.AddressSet private stakers;    
     mapping(address => uint) private balances;
+    
+    CountersUpgradeable.Counter public rewardsId;
+    uint256 private epochLength;
+    RewardsPool[] private pools;
+    RewardsPool public curPool;
+    RewardsPool private completedPool;
+
+    struct RewardPool {
+        uint256 id;
+        uint256 endTime;
+        uint256 totalStaked;
+        uint256 totalReleased;
+    }
 
      function initialize(IERC1155 _memberships) initializer public {
          __Ownable_init();
@@ -35,6 +51,11 @@ IMembershipStaker,
          __ERC1155Receiver_init();
          __UUPSUpgradeable_init();
          membershipContract = _memberships;
+         (address[] memory accounts, uint256[] memory amounts) = currentStaked();
+         curPool = new RewardsPool(block.timestamp + 7 days, accounts, amounts);
+         pools.push(curPool);
+
+         epochLength = 30 days;
      }
 
     function _authorizeUpgrade(address newImplementation)
@@ -48,6 +69,7 @@ IMembershipStaker,
         stakeCount += amount;
         stakers.add(msg.sender);
         membershipContract.safeTransferFrom(msg.sender, address(this), VIP_ID, amount, "");
+        updatePool();
         emit MembershipStaked(msg.sender, balances[msg.sender]);
     }
 
@@ -59,6 +81,7 @@ IMembershipStaker,
         if(balances[msg.sender] == 0){
             stakers.remove(msg.sender);
         }
+        updatePool();
         emit MembershipUnstaked(msg.sender, balances[msg.sender]);
     }
 
@@ -91,12 +114,52 @@ IMembershipStaker,
         revert("batches not accepted");
     }
 
-    function currentStaked() override external view returns (address[] memory, uint256[] memory){
+    function currentStaked() override public view returns (address[] memory, uint256[] memory){
          address[] memory _stakers = stakers.values();
          uint[] memory _amounts = new uint[](stakers.length());
          for (uint i = 0; i < _stakers.length; i++){
              _amounts[i] = balances[_stakers[i]];
          }
          return (_stakers, _amounts);
-    }    
+    }
+
+    //Pool
+    function updatePool() private{
+        if(curPool.isClosed()){
+            (address[] memory accounts, uint256[] memory amounts) = currentStaked();
+            RewardsPool newPool = new RewardsPool(block.timestamp + epochLength, accounts, amounts);
+            pools.push(newPool);
+            rewardsId.increment();
+            if(address(completedPool) != address(0)){
+                completedPool.forwardUnclaimed(newPool);
+            }
+            if(address(this).balance > 0){
+                newPool.addReward{value : address(this).balance}();
+            }
+            completedPool = curPool;
+            curPool = newPool;
+        }
+    }
+
+    receive() external payable virtual{
+        updatePool();
+        curPool.addReward{value: msg.value}();
+    }
+
+    function currentPoolId() public view returns(uint256){
+        return rewardsId.current();
+    }
+
+    function periodEnd() public view returns (uint256){
+        return curPool.endTime();
+    }
+
+    function poolBalance() public view returns (uint256){
+        return address(curPool).balance;
+    }
+
+    //OWNER
+    function setEpochLength(uint _length) public onlyOwner {
+        epochLength = _length;
+    }
 }
