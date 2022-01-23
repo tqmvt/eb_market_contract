@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: Unlicense 
+// SPDX-License-Identifier: UNLICENSED
+//Copyright Ebisusbay.com 2021
 pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
