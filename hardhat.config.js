@@ -29,11 +29,15 @@ module.exports = {
       url : "https://evm-cronos.crypto.org",
       chainId: 25,
       accounts: process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
+      membership: '0x8d9232Ebc4f06B7b8005CCff0ca401675ceb25F5',
+      market : '0x7a3CdB2364f92369a602CAE81167d0679087e6a3'
     },
     cronos_testnet : {
       url : "https://cronos-testnet-3.crypto.org:8545",
       chainId : 338,
       accounts:  process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
+      membership: '0x3F1590A5984C89e6d5831bFB76788F3517Cdf034',
+      market : '0x15876C450638158F48392F01dE2CEa51eccc7840'
     }
   },
   paths: {

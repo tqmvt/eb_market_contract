@@ -92,6 +92,10 @@ contract Marketplace is
         return activeListings.size();
     }
 
+    function getRoyalty(address _nftContract) external view returns (Royalty memory){
+        return royalties[_nftContract];
+    }
+
     function activeListing(uint256 _listingId) external view returns (IterableMapping.Listing memory){
         return activeListings.getById(_listingId);
     } 
