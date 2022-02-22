@@ -14,20 +14,22 @@ import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 import "./RewardsPool.sol";
+import "hardhat/console.sol";
 
 
 contract MembershipStaker is Initializable, 
 IMembershipStaker,
- OwnableUpgradeable, 
- ReentrancyGuardUpgradeable, 
- ERC1155ReceiverUpgradeable,
- UUPSUpgradeable{
+OwnableUpgradeable, 
+ReentrancyGuardUpgradeable, 
+ERC1155ReceiverUpgradeable,
+UUPSUpgradeable {
 
      using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
      using CountersUpgradeable for CountersUpgradeable.Counter;
 
      uint64 private constant VIP_ID = 2;
      IERC1155 private membershipContract;
+     bool private isInitPeriod;
 
     uint256 private stakeCount;
     EnumerableSetUpgradeable.AddressSet private stakers;    
@@ -35,27 +37,17 @@ IMembershipStaker,
     
     CountersUpgradeable.Counter public rewardsId;
     uint256 private epochLength;
-    RewardsPool[] private pools;
+    RewardsPool[] public pools;
     RewardsPool public curPool;
-    RewardsPool private completedPool;
+    RewardsPool public completedPool;
 
-    struct RewardPool {
-        uint256 id;
-        uint256 endTime;
-        uint256 totalStaked;
-        uint256 totalReleased;
-    }
-
-     function initialize(IERC1155 _memberships) initializer public {
+     function initialize(address _memberships) initializer public {
          __Ownable_init();
          __ReentrancyGuard_init();
          __ERC1155Receiver_init();
          __UUPSUpgradeable_init();
-         membershipContract = _memberships;
-         (address[] memory accounts, uint256[] memory amounts) = currentStaked();
-         curPool = new RewardsPool(block.timestamp + 7 days, accounts, amounts);
-         pools.push(curPool);
-
+         membershipContract = IERC1155(_memberships);
+         isInitPeriod = true;
          epochLength = 30 days;
      }
 
@@ -66,6 +58,8 @@ IMembershipStaker,
     {}
 
     function stake(uint256 amount) override external {
+        require(amount > 0, "invalid amount");
+        require(membershipContract.balanceOf(msg.sender, VIP_ID) >= amount, "invalid balance");
         balances[msg.sender] = balances[msg.sender] + amount;
         stakeCount += amount;
         stakers.add(msg.sender);
@@ -125,26 +119,31 @@ IMembershipStaker,
     }
 
     //Pool
-    function updatePool() private{
-        if(curPool.isClosed()){
+    function updatePool() public {
+        if(isInitPeriod) return;
+        if(address(curPool) == address(0) || curPool.isClosed()){
             (address[] memory accounts, uint256[] memory amounts) = currentStaked();
-            RewardsPool newPool = new RewardsPool(block.timestamp + epochLength, accounts, amounts);
-            pools.push(newPool);
-            rewardsId.increment();
-            if(address(completedPool) != address(0)){
-                completedPool.forwardUnclaimed(newPool);
+            if(accounts.length > 0){
+                RewardsPool newPool = new RewardsPool(block.timestamp + epochLength, accounts, amounts);
+                pools.push(newPool);
+                rewardsId.increment();
+                if(address(completedPool) != address(0)){
+                    completedPool.forwardUnclaimed(newPool);
+                }
+                if(address(this).balance > 0){
+                    newPool.addReward{value : address(this).balance}();
+                }
+                completedPool = curPool;
+                curPool = newPool;
             }
-            if(address(this).balance > 0){
-                newPool.addReward{value : address(this).balance}();
-            }
-            completedPool = curPool;
-            curPool = newPool;
         }
     }
 
     receive() external payable virtual{
         updatePool();
-        curPool.addReward{value: msg.value}();
+        if(address(curPool) != address(0)){
+            curPool.addReward{value: msg.value}();
+        }   
     }
 
     function currentPoolId() public view returns(uint256){
@@ -152,15 +151,32 @@ IMembershipStaker,
     }
 
     function periodEnd() public view returns (uint256){
+        if(address(curPool) == address(0)) return 0;
         return curPool.endTime();
     }
 
     function poolBalance() public view returns (uint256){
-        return address(curPool).balance;
+        if(address(curPool) != address(0)){ 
+            return curPool.totalReceived();
+        } else {
+            return address(this).balance;
+        }
     }
 
-    //OWNER
-    function setEpochLength(uint _length) public onlyOwner {
+    function harvest(address payable _address) external {
+        if(address(completedPool) != address(0)){
+            completedPool.release(_address);
+        }
+        updatePool();
+    }
+
+    // OWNER
+    function setEpochLength(uint _length) external onlyOwner {
         epochLength = _length;
+    }
+
+    function endInitPeriod() external onlyOwner {
+        isInitPeriod = false;
+        updatePool();
     }
 }

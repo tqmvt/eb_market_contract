@@ -18,49 +18,95 @@ describe("MembershipStaker", () => {
     
     before(async() => {
         [owner, alice, bob, charlie, cs] = await ethers.getSigners();
-        stakerFactory = await ethers.getContractFactory("MembershipStaker")
+        stakerFactory = await ethers.getContractFactory("MembershipStaker");
         membershipFactory = await ethers.getContractFactory("EbisusBayMembership");
     })
 
     beforeEach(async() => {
+
         memberships = await membershipFactory.deploy();
         await memberships.deployed();
+
         await memberships.updatePrice(1000, 50, VIPID);
         await memberships.connect(alice).mint(VIPID, 2, empty, {'value' : 2000})
         await memberships.connect(bob).mint(VIPID, 1, empty, {'value' : 1000})
         await memberships.connect(cs).mint(VIPID, 100, empty, {'value' : 100000})
+
         staker = await upgrades.deployProxy(stakerFactory, [memberships.address], {
             kind : "uups"
         });
+        
         await staker.deployed();
+
     })
 
     it('init to zero', async() => {
-        await expect(await staker.totalStaked()).to.eq(0);
+        expect(await staker.totalStaked()).to.eq(0);
     })
+
+    it('should report balance', async () => {
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+          });
+
+        expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("1.0"));
+        await memberships.connect(alice).setApprovalForAll(staker.address, true);
+        expect(staker.connect(alice).stake(1))
+        await memberships.connect(bob).setApprovalForAll(staker.address, true);
+        expect(staker.connect(bob).stake(1))
+
+        await staker.connect(owner).endInitPeriod();
+        expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("1.0"));
+        expect(await ethers.provider.getBalance(staker.curPool())).to.eq(ethers.utils.parseEther("1.0"));
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+          });
+
+        expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("2.0"));
+        await staker.harvest(alice.address);
+        expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("2.0"));
+
+        await ethers.provider.send("evm_increaseTime", [2592001]);
+        await ethers.provider.send("evm_mine"); 
+        await staker.updatePool();
+
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("1.0"));
+        expect(await staker.poolBalance()).to.eq(0);
+        expect(await ethers.provider.getBalance(staker.completedPool())).to.eq(ethers.utils.parseEther("1.0"));
+
+        await ethers.provider.send("evm_increaseTime", [2592001]);
+        await ethers.provider.send("evm_mine"); 
+        await staker.updatePool();
+
+        await expect(staker.harvest(bob.address)).to.be.reverted;
+        await expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("1.0"));
+
+    });
 
     it('should update report the correct number staked', async() => {
         await memberships.connect(alice).setApprovalForAll(staker.address, true);
-        await expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
+        expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
 
         await expect(staker.connect(alice).stake(1))
             .to.emit(staker, "MembershipStaked").withArgs(alice.address, 1);
         
-        await expect(await staker.amountStaked(alice.address)).to.eq(1);
-        await expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(1);
-        await expect(await staker.totalStaked()).to.eq(1);
+        expect(await staker.amountStaked(alice.address)).to.eq(1);
+        expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(1);
+        expect(await staker.totalStaked()).to.eq(1);
 
         await expect(staker.connect(alice).stake(1))
             .to.emit(staker, "MembershipStaked").withArgs(alice.address, 2);
 
-        await expect(await staker.amountStaked(alice.address)).to.eq(2);
-        await expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(0);
-        await expect(await staker.totalStaked()).to.eq(2);
+        expect(await staker.amountStaked(alice.address)).to.eq(2);
+        expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(0);
+        expect(await staker.totalStaked()).to.eq(2);
     });
 
     it('should not let user unstake more than staked', async () => {
         await memberships.connect(bob).setApprovalForAll(staker.address, true);
-        await expect(await memberships.balanceOf(bob.address, VIPID)).to.eq(1);
+        expect(await memberships.balanceOf(bob.address, VIPID)).to.eq(1);
         await staker.connect(bob).stake(1);
         await expect(staker.connect(bob).unstake(2))
             .to.revertedWith('invalid amount');
@@ -70,14 +116,14 @@ describe("MembershipStaker", () => {
 
     it('should report correct amount unstaked', async () => {
         await memberships.connect(alice).setApprovalForAll(staker.address, true);
-        await expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
+        expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
         await staker.connect(alice).stake(2)
-        await expect(await staker.totalStaked()).to.eq(2);
+        expect(await staker.totalStaked()).to.eq(2);
         await expect(staker.connect(alice).unstake(1))
             .to.emit(staker, "MembershipUnstaked").withArgs(alice.address, 1);
-        await expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(1);
-        await expect(await staker.amountStaked(alice.address)).to.eq(1);
-        await expect(await staker.totalStaked()).to.eq(1);
+        expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(1);
+        expect(await staker.amountStaked(alice.address)).to.eq(1);
+        expect(await staker.totalStaked()).to.eq(1);
     });
 
     it('should reject batches', async() => {

@@ -201,6 +201,10 @@ contract Marketplace is
         emit Sold(_id);
     }
 
+    function addToEscrow(address _address) external payable {
+        _asyncTransfer(_address, msg.value);
+    }
+
     function cancelListing(uint256 _id) public {
         require(activeListings.containsId(_id), "invalid id");
         IterableMapping.Listing memory listing = activeListings.getById(_id);

@@ -5,6 +5,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
 contract RewardsPool is PaymentSplitter, Ownable{
 
@@ -23,7 +24,7 @@ contract RewardsPool is PaymentSplitter, Ownable{
 
     function updateState() public{
         if(block.timestamp >= endingTime && curState != State.CLOSED){
-            finalBalance = address(this).balance;
+            finalBalance = address(this).balance + totalReleased();
             curState = State.CLOSED;
         }
     }
@@ -35,6 +36,10 @@ contract RewardsPool is PaymentSplitter, Ownable{
     function isClosed() public returns(bool) {
         updateState();
         return curState == State.CLOSED;
+    }
+
+    function totalReceived() public view returns(uint256){
+        return address(this).balance + totalReleased();
     }
 
     function addReward() public payable{
