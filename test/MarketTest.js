@@ -15,17 +15,19 @@ describe("Marketplace", async() => {
     let membershipFactory;
     let marketFactory;
     let nftFactory;
+    let stakingFactory;
     
     let memberships;
     let market;
     let nftContract;
     let nftWithRoyalties;
+    let membershipStaker
     
 
     before(async() => {
         [deployer, admin, staff, bob, alice, cs, dan, ed, ipHolder] = await ethers.getSigners();
         membershipFactory = await ethers.getContractFactory("EbisusBayMembership");
-        // stakingFactory = await ethers.getContractFactory("MembershipStaker")
+        stakingFactory = await ethers.getContractFactory("MembershipStaker")
         // poolFactory = await ethers.getContractFactory("RewardsPool");
         // escrowFactory = await ethers.getContractFactory("MarketEscrow");
         marketFactory = await ethers.getContractFactory("Marketplace");
@@ -77,6 +79,10 @@ describe("Marketplace", async() => {
         await nftWithRoyalties.deployed();
         await market.connect(staff).registerRoyalty(nftWithRoyalties.address, ipHolder.address, 500);
         await nftWithRoyalties.safeMint(alice.address); //0 alice
+
+        membershipStaker = await stakingFactory.deploy();
+        await membershipStaker.deployed();
+        await market.connect(admin).setMembershipStaker(membershipStaker.address);
     });
 
     it('should only let admin upgrade', async () => {
@@ -148,7 +154,8 @@ describe("Marketplace", async() => {
         await makeListing(alice, 0)
         await market.connect(bob).makePurchase(0, {'value' : 10000})
         await expect(await market.payments(alice.address)).to.eq(9850)
-        await expect(await ethers.provider.getBalance(market.address)).to.eq(150);
+        await expect(await ethers.provider.getBalance(market.address)).to.eq(75);
+        await expect(await ethers.provider.getBalance(membershipStaker.address)).to.eq(75);
     });
 
     it('should distribute roylties on royalty sale', async() => {
@@ -156,7 +163,8 @@ describe("Marketplace", async() => {
         await market.connect(bob).makePurchase(0, {'value' : 10000})
         await expect(await market.payments(alice.address)).to.eq(9350)
         await expect(await market.payments(ipHolder.address)).to.eq(500)
-        await expect(await ethers.provider.getBalance(market.address)).to.eq(150);
+        await expect(await ethers.provider.getBalance(market.address)).to.eq(75);
+        await expect(await ethers.provider.getBalance(membershipStaker.address)).to.eq(75);
     });
 
     it('should transfer nft on sale', async () => {
@@ -186,7 +194,7 @@ describe("Marketplace", async() => {
         await makeListing(alice, 0)
         await market.connect(cs).makePurchase(0, {'value' : 10000})
         await expect(market.connect(staff).withdraw()).to.be.reverted;
-        await expect(await market.connect(admin).withdraw()).to.changeEtherBalance(admin, 150);
+        await expect(await market.connect(admin).withdraw()).to.changeEtherBalance(admin, 75);
     });
 
     it('should cancel listing by owner', async() => {

@@ -16,7 +16,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import "./SafePct.sol";
 import "./IterableMapping.sol";
-
+import "./IMembershipStaker.sol";
 
 contract Marketplace is 
     Initializable, 
@@ -64,6 +64,7 @@ contract Marketplace is
     CountersUpgradeable.Counter private listingId;
 
     mapping(address => Royalty) public royalties;
+    IMembershipStaker membershipStaker;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -189,6 +190,10 @@ contract Marketplace is
             IERC721(listing.nft).safeTransferFrom(listing.seller, msg.sender, listing.nftId);
         }
         
+        uint256 stakingFee = listing.fee.mulDiv(1, 2);
+        (bool sent, ) = address(membershipStaker).call{value: stakingFee}("");
+        require(sent, "transfer fee failed");
+
         _asyncTransfer(listing.seller, listing.price - listing.fee - listing.royalty);
         address ipHolder = royalties[listing.nft].ipHolder;
         if(ipHolder != address(0)){
@@ -255,4 +260,7 @@ contract Marketplace is
         vipFee = _vipFee;
     }
 
+    function setMembershipStaker(address _membershipStaker) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        membershipStaker = IMembershipStaker(_membershipStaker);
+    }
 }
