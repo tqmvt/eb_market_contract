@@ -263,4 +263,6 @@ contract Marketplace is
     function setMembershipStaker(address _membershipStaker) public onlyRole(DEFAULT_ADMIN_ROLE) {
         membershipStaker = IMembershipStaker(_membershipStaker);
     }
+
+    receive() external payable {}
 }
