@@ -191,6 +191,7 @@ contract Marketplace is
         }
         
         uint256 stakingFee = listing.fee.mulDiv(1, 2);
+        require(address(membershipStaker) != address(0), "staker is not set");
         (bool sent, ) = address(membershipStaker).call{value: stakingFee}("");
         require(sent, "transfer fee failed");
 
