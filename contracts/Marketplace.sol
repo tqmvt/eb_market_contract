@@ -64,7 +64,7 @@ contract Marketplace is
     CountersUpgradeable.Counter private listingId;
 
     mapping(address => Royalty) public royalties;
-    IMembershipStaker membershipStaker;
+    IMembershipStaker public membershipStaker;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
