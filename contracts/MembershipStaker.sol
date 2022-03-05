@@ -141,7 +141,7 @@ UUPSUpgradeable {
 
     receive() external payable virtual{
         updatePool();
-        if(address(curPool) != address(0)){
+        if(address(curPool) != address(0) && address(this).balance > 0){
             curPool.addReward{value: msg.value}();
         }   
     }

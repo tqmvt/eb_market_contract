@@ -5,6 +5,7 @@ require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-abi-exporter');
+require("dotenv").config();
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

@@ -79,9 +79,13 @@ describe("Marketplace", async() => {
         await nftWithRoyalties.deployed();
         await market.connect(staff).registerRoyalty(nftWithRoyalties.address, ipHolder.address, 500);
         await nftWithRoyalties.safeMint(alice.address); //0 alice
-
-        membershipStaker = await stakingFactory.deploy();
+        
+        membershipStaker = await upgrades.deployProxy(stakingFactory, [memberships.address], {
+            kind : "uups"
+        });
+        
         await membershipStaker.deployed();
+
         await market.connect(admin).setMembershipStaker(membershipStaker.address);
     });
 
@@ -218,6 +222,24 @@ describe("Marketplace", async() => {
         await market.connect(dan).makePurchase(0, {'value' : 10000});
         await expect(await memberships.balanceOf(cs.address, 2)).to.eq(99);
         await expect(await memberships.balanceOf(dan.address, 2)).to.eq(1);
+    });
+
+    it('should make purchase after epoch closed', async() => {
+        await nftContract.connect(alice).setApprovalForAll(market.address, true);
+        await membershipStaker.connect(deployer).endInitPeriod();
+
+        await memberships.connect(alice).setApprovalForAll(membershipStaker.address, true);
+        await membershipStaker.connect(alice).stake(1);
+
+        await ethers.provider.send("evm_increaseTime", [2592001]);
+        await ethers.provider.send("evm_mine"); 
+  
+        await expect(makeListing(alice, 0))
+            .to.emit(market, "Listed").withArgs(BigNumber.from(0));
+        const curPoolId = await membershipStaker.currentPoolId();
+        await expect(market.connect(bob).makePurchase(0, {'value' : 10000}))
+            .to.emit(market, "Sold").withArgs(BigNumber.from(0));
+        expect(await membershipStaker.currentPoolId()).to.be.equal(parseInt(curPoolId) + 1);
     });
 
     async function makeListing(lister, id){
