@@ -190,10 +190,11 @@ contract Marketplace is
             IERC721(listing.nft).safeTransferFrom(listing.seller, msg.sender, listing.nftId);
         }
         
-        uint256 stakingFee = listing.fee.mulDiv(1, 2);
-        require(address(membershipStaker) != address(0), "staker is not set");
-        (bool sent, ) = address(membershipStaker).call{value: stakingFee}("");
-        require(sent, "transfer fee failed");
+        if (address(membershipStaker) != address(0)) {
+            uint256 stakingFee = listing.fee.mulDiv(1, 2);
+            (bool sent, ) = address(membershipStaker).call{value: stakingFee}("");
+            require(sent, "transfer fee failed");
+        }
 
         _asyncTransfer(listing.seller, listing.price - listing.fee - listing.royalty);
         address ipHolder = royalties[listing.nft].ipHolder;

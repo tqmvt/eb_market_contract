@@ -242,6 +242,14 @@ describe("Marketplace", async() => {
         expect(await membershipStaker.currentPoolId()).to.be.equal(parseInt(curPoolId) + 1);
     });
 
+    it('should keep stake fee when stake address is 0', async() => {
+        await makeListing(alice, 0)
+        await market.connect(admin).setMembershipStaker("0x0000000000000000000000000000000000000000");
+        await expect(() => market.connect(bob).makePurchase(0, {'value' : 10000})).to.changeEtherBalance(market, 150);
+        await expect(await ethers.provider.getBalance(membershipStaker.address)).to.eq(0);
+    });
+
+
     async function makeListing(lister, id){
         await nftContract.connect(lister).setApprovalForAll(market.address, true);
         return await market.connect(lister).makeListing(nftContract.address, id, 10000);

@@ -172,11 +172,11 @@ describe("Test Offer contract", function () {
   // });
 
   it("Should reject offer", async function () {
-    await offerContract.connect(accounts[1]).makeOffer(mockERC1155.address, 1, {
+    await offerContract.connect(accounts[1]).makeOffer(mockERC721.address, 1, {
       from: accounts[1].address,
       value: parseEther("20")
     })
-    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC1155.address, 1]); 
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]); 
     await expect( offerContract.rejectOffer(hash, 0)).to.emit(offerContract, "OfferRejected")
 
     const offer = await offerContract.getOffer(hash, 0);
@@ -184,11 +184,11 @@ describe("Test Offer contract", function () {
 
   });
   it("Should refund Cro when rejecting offer", async function () {
-    await offerContract.connect(accounts[1]).makeOffer(mockERC1155.address, 1, {
+    await offerContract.connect(accounts[1]).makeOffer(mockERC721.address, 1, {
       from: accounts[1].address,
       value: parseEther("20")
     })
-    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC1155.address, 1]); 
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]); 
 
     await expect(() => offerContract.rejectOffer(hash, 0)).to.changeEtherBalance(accounts[1], parseEther("20"));
   });
@@ -416,28 +416,16 @@ describe("Test Offer contract", function () {
   });
 
   it("Should not reject the offer when offer is not opened", async function () {
-    await offerContract.connect(accounts[1]).makeOffer(mockERC1155.address, 1, {
-      from: accounts[1].address,
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
       value: parseEther("20")
     })
 
-    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC1155.address, 1]);
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]);
     await offerContract.acceptOffer(hash, 0);
     
     await expect( offerContract.rejectOffer(hash, 0))
     .to.be.revertedWith("offer is not opened");  
-  });
-  
-  it("Should not reject the offer when offer doesn't have the enought balance for 1155", async function () {
-    await offerContract.connect(accounts[1]).makeOffer(mockERC1155.address, 1, {
-      from: accounts[1].address,
-      value: parseEther("20")
-    })
-
-    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC1155.address, 1]);
-
-    await expect( offerContract.connect(accounts[1]).rejectOffer(hash, 0))
-    .to.be.revertedWith("not enough balance for token");  
   });
 }); 
 
