@@ -427,5 +427,33 @@ describe("Test Offer contract", function () {
     await expect( offerContract.rejectOffer(hash, 0))
     .to.be.revertedWith("offer is not opened");  
   });
+
+  it("Should update offer", async function () {
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("20")
+    })
+
+    // should not update when not bigger amount
+    await expect(offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("20")
+    })).to.be.revertedWith("not samller than current amount");
+
+    // should update the offer
+    await expect(offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("30")
+    })).to.emit(offerContract, "OfferUpdated");
+
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]);
+    
+    const offer = await offerContract.getOffer(hash, 0);
+
+    expect(offer[1].nft).to.be.equal(mockERC721.address)
+    expect(offer[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer[1].amount).to.be.equal(parseEther("30"))
+    expect(offer[1].status).to.be.equal(4)    
+  });
 }); 
 

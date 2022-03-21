@@ -28,7 +28,8 @@ enum Status {
     Created,
     Rejected,
     Cancelled,
-    Accepted
+    Accepted,
+    Updated
 }
 struct Offer {
     address nft;
@@ -41,10 +42,12 @@ struct Offer {
     uint256 date;
 }
 contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-    event OfferMade(address indexed nft, uint256 id, address indexed buyer, uint256 amount, address coinAddress, uint256 time); 
-    event OfferCancelled(address indexed nft, uint256 id, address indexed buyer, uint256 time); 
-    event OfferAccepted(address indexed nft, uint256 id, address indexed buyer, address indexed seller, uint256 amount, address coinAddress, uint256 time); 
-    event OfferRejected(address indexed nft, uint256 id, address indexed buyer, address indexed seller, uint256 amount, address coinAddress, uint256 time); 
+
+    event OfferMade(address indexed nft, uint256 id, uint256 offerIndex, address indexed buyer, uint256 amount, address coinAddress, uint256 time); 
+    event OfferUpdated(address indexed nft, uint256 id, uint256 offerIndex, address indexed buyer, uint256 amount, address coinAddress, uint256 time); 
+    event OfferCancelled(address indexed nft, uint256 id, uint256 offerIndex, address indexed buyer, uint256 time); 
+    event OfferAccepted(address indexed nft, uint256 id, uint256 offerIndex, address indexed buyer, address indexed seller, uint256 amount, address coinAddress, uint256 time); 
+    event OfferRejected(address indexed nft, uint256 id, uint256 offerIndex, address indexed buyer, address indexed seller, uint256 amount, address coinAddress, uint256 time); 
 
     using ERC165Checker for address;
     using SafePct for uint256;
@@ -62,6 +65,9 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
 
     bytes32 public constant UPGRADER_ROLE = keccak256('UPGRADER_ROLE');
     bytes32 public constant STAFF_ROLE = keccak256('STAFF_ROLE');
+
+    // userInfo.  wallet => hash => offerIndex
+    mapping(address => mapping(bytes32 => uint256)) userOfferInfo;
 
     modifier onlyNFT(address _nft) {
         require(is1155(_nft) || is721(_nft), "unsupported type");
@@ -135,23 +141,38 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
     function makeOffer(address _nft, uint256 _id) external payable onlyNFT(_nft) {
         bytes32 hash = generateHash(_nft, _id);
 
-        Offer memory _offer;
-        _offer.nft = _nft;
-        _offer.id = _id;
-        _offer.buyer = msg.sender;
-        _offer.amount = msg.value;
-        _offer.date = block.timestamp;
-        _offer.status = Status.Created;
+        // check if the offer already exists
+        uint256 offerIndex = userOfferInfo[msg.sender][hash];
+        if (offerIndex == 0 ) {
+            Offer memory _offer;
+            _offer.nft = _nft;
+            _offer.id = _id;
+            _offer.buyer = msg.sender;
+            _offer.amount = msg.value;
+            _offer.date = block.timestamp;
+            _offer.status = Status.Created;
 
-        offers[hash].push(_offer);
+            offers[hash].push(_offer);
+            userOfferInfo[msg.sender][hash] = offers[hash].length;
+            offerIndex = 1;
+            emit  OfferMade(_nft, _id, offerIndex - 1, msg.sender, msg.value, address(0), _offer.date);
+        } else {
+            Offer memory _offer = offers[hash][offerIndex - 1];
+            //should increase the offer amount
+            require(_offer.amount < msg.value, "not samller than current amount");
+            _offer.amount = msg.value;
+            _offer.date = block.timestamp;
+            _offer.status = Status.Updated;
 
-        emit  OfferMade(_nft, _id, msg.sender, msg.value, address(0), block.timestamp);
+            offers[hash][offerIndex - 1] = _offer;
+            emit  OfferUpdated(_nft, _id, offerIndex - 1, msg.sender, msg.value, address(0), _offer.date);
+        }
     }
 
     function cancelOffer(bytes32 _hash, uint256 _offerIndex) external nonReentrant{
         (bool isExist, Offer memory _offer) = getOffer(_hash, _offerIndex);
         require(isExist, "offer not exist");
-        require(_offer.status == Status.Created, "offer is not opened");
+        require(_offer.status == Status.Created || _offer.status == Status.Updated, "offer is not opened");
 
         if (!hasRole(STAFF_ROLE, msg.sender)) {
             require(_offer.buyer == msg.sender, "incorrect buyer");
@@ -168,14 +189,14 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
            require(sent, "transfer failed");
         }
 
-        emit  OfferCancelled(_offer.nft, _offer.id, _offer.buyer, block.timestamp); 
+        emit  OfferCancelled(_offer.nft, _offer.id, _offerIndex,  _offer.buyer, block.timestamp); 
     }
 
     function acceptOffer(bytes32 _hash, uint256 _offerIndex) external nonReentrant {
         (bool isExist, Offer memory _offer) = getOffer(_hash, _offerIndex);
         require(isExist, "offer not exist");
 
-        require(_offer.status == Status.Created, "offer is not opened");
+        require(_offer.status == Status.Created || _offer.status == Status.Updated, "offer is not opened");
         if (is721(_offer.nft)) {
             require(IERC721(_offer.nft).ownerOf(_offer.id) == msg.sender, "not nft owner");
         } else {
@@ -227,7 +248,7 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
         // reject other offers for this nft
         // rejectAllOffers(_hash);
 
-        emit OfferAccepted(_offer.nft, _offer.id, _offer.buyer, msg.sender, _offer.amount, _offer.coinAddress, block.timestamp); 
+        emit OfferAccepted(_offer.nft, _offer.id, _offerIndex, _offer.buyer, msg.sender, _offer.amount, _offer.coinAddress, block.timestamp); 
     }
         
     function rejectOffer(bytes32 _hash, uint256 _offerIndex) public nonReentrant {
@@ -240,10 +261,10 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
             revert("shouldn't reject 1155");
         }
 
-        require(_offer.status == Status.Created, "offer is not opened");
+        require(_offer.status == Status.Created || _offer.status == Status.Updated, "offer is not opened");
         
         offerRejection(offers[_hash][_offerIndex]);
-        emit OfferRejected(_offer.nft, _offer.id, _offer.buyer, msg.sender, _offer.amount, _offer.coinAddress, block.timestamp); 
+        emit OfferRejected(_offer.nft, _offer.id, _offerIndex, _offer.buyer, msg.sender, _offer.amount, _offer.coinAddress, block.timestamp); 
     }
 
     function offerRejection(Offer storage _offer) private {
@@ -262,14 +283,14 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
         require(sent, "transfer failed");
     }
 
-    function rejectAllOffers(bytes32 _hash) private {
-       Offer[] storage _offers = offers[_hash];
-       uint256 offerLen = _offers.length;
+    // function rejectAllOffers(bytes32 _hash) private {
+    //    Offer[] storage _offers = offers[_hash];
+    //    uint256 offerLen = _offers.length;
 
-       for(uint256 i = 0; i < offerLen; i ++) {
-           if (_offers[i].status == Status.Created) {
-            offerRejection(_offers[i]);
-           }
-       }
-    }
+    //    for(uint256 i = 0; i < offerLen; i ++) {
+    //        if (_offers[i].status == Status.Created || _offers[i].status == Status.Updated) {
+    //         offerRejection(_offers[i]);
+    //        }
+    //    }
+    // }
 }
