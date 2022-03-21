@@ -3,9 +3,11 @@ async function main() {
     const deployer = await ethers.getSigner();
     console.log(`deployer address: ${deployer.address}`);
     const contractFactory = await ethers.getContractFactory("Marketplace");
-    const memberships = "0x8d9232Ebc4f06B7b8005CCff0ca401675ceb25F5";
+    const  memberships = hre.config.networks[hre.network.name].membership;
+
     const admin = process.env.LEDGER_PUBLIC;
     console.log(`admin address: ${admin}`);
+    console.log(`memberships address: ${memberships}`)
 
     const market = await upgrades.deployProxy(contractFactory, [memberships], {kind: 'uups'});
     console.log(`market deployed to ${market.address}`);
@@ -21,16 +23,12 @@ async function main() {
     console.log("granting admin");
     await market.grantRole(adminRole, admin);
     
-    console.log("granding upgrade");
-    await market.grantRole(upgradeRole, admin);
+    console.log("granting upgrade");
+    await market.grantRole(upgradeRole, deployer);
 
     console.log("granting staff")
     await market.grantRole(staffRole, admin);
-    
-    // console.log("revoking admin")
-    // await market.revokeRole(adminRole, deployer.address);
-    // console.log("revoking upgrader");
-    // await market.revokeRole(upgradeRole, deployer.address);
+    await market.grantRole(staffRole, deployer);
     console.log('permissions set');
 }
 

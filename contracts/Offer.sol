@@ -41,10 +41,10 @@ struct Offer {
     uint256 date;
 }
 contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-    event OfferMade(address nft, uint256 id, address buyer, uint256 amount, address coinAddress, uint256 time); 
-    event OfferCancelled(address nft, uint256 id, address buyer, uint256 time); 
-    event OfferAccepted(address nft, uint256 id, address buyer, address seller, uint256 amount, address coinAddress, uint256 time); 
-    event OfferRejected(address nft, uint256 id, address buyer, address seller, uint256 amount, address coinAddress, uint256 time); 
+    event OfferMade(address indexed nft, uint256 id, address indexed buyer, uint256 amount, address coinAddress, uint256 time); 
+    event OfferCancelled(address indexed nft, uint256 id, address indexed buyer, uint256 time); 
+    event OfferAccepted(address indexed nft, uint256 id, address indexed buyer, address indexed seller, uint256 amount, address coinAddress, uint256 time); 
+    event OfferRejected(address indexed nft, uint256 id, address indexed buyer, address indexed seller, uint256 amount, address coinAddress, uint256 time); 
 
     using ERC165Checker for address;
     using SafePct for uint256;

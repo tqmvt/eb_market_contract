@@ -183,6 +183,11 @@ describe("Marketplace", async() => {
         await expect(await market.fee(cs.address)).to.eq(0);
         await expect(await market.fee(dan.address)).to.eq(300);
         await expect(await market.fee(ed.address)).to.eq(500);
+        await memberships.connect(bob).setApprovalForAll(membershipStaker.address, true);
+        expect(await memberships.balanceOf(bob.address, VIPID)).to.eq(1)
+        await membershipStaker.connect(bob).stake(1);
+        expect(await memberships.balanceOf(bob.address, VIPID)).to.eq(0)
+        expect(await market.fee(bob.address)).to.eq(150);
     });
 
     it('should adjust fees', async() => {

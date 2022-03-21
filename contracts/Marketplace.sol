@@ -230,13 +230,30 @@ contract Marketplace is
     function fee(address user) public view returns (uint16 userFee){
         if(memberships.balanceOf(user, 3) > 0){
             userFee = 0;
-        } else if(memberships.balanceOf(user, 2) > 0) {
+        } else if(isVIP(user)) {
             userFee = vipFee;
-        } else if(memberships.balanceOf(user, 1) > 0){
+        } else if(isFM(user)){
             userFee = memberFee;
         }else {
             userFee = regFee;
         }
+    }
+
+    function isMember(address user) public view returns (bool){
+        return isFM(user) || isVIP(user);
+    }
+
+    function isFM(address user) public view returns (bool) {
+        return memberships.balanceOf(user, 1) > 0;
+    }
+
+    function isVIP(address user) public view returns (bool) {
+        if(memberships.balanceOf(user, 2) > 0){
+            return true;
+        } else if((address(membershipStaker) != address(0) && membershipStaker.amountStaked(user) > 0)){
+            return true;
+        }
+        return false;
     }
 
     //=====STAFF============
