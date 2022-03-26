@@ -36,7 +36,7 @@ UUPSUpgradeable {
     mapping(address => uint) private balances;
     
     CountersUpgradeable.Counter public rewardsId;
-    uint256 private epochLength;
+    uint256 public epochLength;
     RewardsPool[] public pools;
     RewardsPool public curPool;
     RewardsPool public completedPool;
@@ -48,7 +48,7 @@ UUPSUpgradeable {
          __UUPSUpgradeable_init();
          membershipContract = IERC1155(_memberships);
          isInitPeriod = true;
-         epochLength = 30 days;
+         epochLength = 14 days;
      }
 
     function _authorizeUpgrade(address newImplementation)
