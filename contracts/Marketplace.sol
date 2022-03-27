@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 //Copyright Ebisusbay.com 2021
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -50,6 +50,11 @@ contract Marketplace is
     event Listed(uint256 indexed listingId);
     event Sold(uint256 indexed listingId);
     event Cancelled(uint256 indexed listingId);
+    event FeesUpdate(address indexed updater, uint256 reg, uint256 fm, uint256 admin);
+    event AdminWithdraw(address indexed admin, uint256 amount);
+    event RoyaltyChanged(address indexed staffMember, address indexed collection, address ipHolder, uint16 fee);
+    event RoyaltyRemoved(address indexed staffMember, address indexed collection);
+    event StakerUpdated(address indexed admin, address newStaker);
 
     IERC1155 private memberships;
 
@@ -133,7 +138,7 @@ contract Marketplace is
         super.withdrawPayments(payee);
     }
 
-    function makeListing(address _nft, uint256 _id, uint256 _price) public  {
+    function makeListing(address _nft, uint256 _id, uint256 _price) external  {
         bool is1155 = _nft.supportsInterface(IID_IERC1155);
         bool is721 =_nft.supportsInterface(IID_IERC721);
         require(is1155 || is721, "unsupported type");
@@ -173,7 +178,7 @@ contract Marketplace is
         emit Listed(newListing.listingId);
     }
 
-    function makePurchase(uint256 _id) public  payable {
+    function makePurchase(uint256 _id) external  payable nonReentrant {
         require(activeListings.containsId(_id), "invalid id");
         IterableMapping.Listing memory listing = activeListings.getById(_id);
         
@@ -182,6 +187,11 @@ contract Marketplace is
         } else {
             require(IERC721(listing.nft).isApprovedForAll(listing.seller, address(this)), "seller revoked approval");
         }
+
+        activeListings.remove(activeListings.keyForId(_id));
+        listing.purchaser = msg.sender;
+        listing.saleTime = block.timestamp;
+        completeListings.set(keccak256(abi.encodePacked(_id)), listing);
         
         require(msg.value >= listing.price, "not enough funds");
         if(listing.is1155){
@@ -196,15 +206,16 @@ contract Marketplace is
             require(sent, "transfer fee failed");
         }
 
-        _asyncTransfer(listing.seller, listing.price - listing.fee - listing.royalty);
+        
         address ipHolder = royalties[listing.nft].ipHolder;
         if(ipHolder != address(0)){
             _asyncTransfer(ipHolder, listing.royalty);
+            _asyncTransfer(listing.seller, listing.price - listing.fee - listing.royalty);
+        } else {
+            //previously registered royalty revoked (rugged or abandoned project)
+            _asyncTransfer(listing.seller, listing.price - listing.fee);
         }
-        activeListings.remove(activeListings.keyForId(_id));
-        listing.purchaser = msg.sender;
-        listing.saleTime = block.timestamp;
-        completeListings.set(keccak256(abi.encodePacked(_id)), listing);
+
         emit Sold(_id);
     }
 
@@ -212,7 +223,7 @@ contract Marketplace is
         _asyncTransfer(_address, msg.value);
     }
 
-    function cancelListing(uint256 _id) public {
+    function cancelListing(uint256 _id) external {
         require(activeListings.containsId(_id), "invalid id");
         IterableMapping.Listing memory listing = activeListings.getById(_id);
         require(listing.seller == msg.sender || hasRole(STAFF_ROLE, msg.sender), "not lister");
@@ -258,29 +269,34 @@ contract Marketplace is
 
     //=====STAFF============
 
-    function registerRoyalty(address _nftContract, address _ipHolder, uint16 _fee) public onlyRole(STAFF_ROLE){
+    function registerRoyalty(address _nftContract, address _ipHolder, uint16 _fee) external onlyRole(STAFF_ROLE){
         royalties[_nftContract] = Royalty(_ipHolder, _fee);
+        emit RoyaltyChanged(msg.sender, _nftContract, _ipHolder, _fee);
     }
 
-    function removeRoyalty(address _nftContract) public onlyRole(STAFF_ROLE){
+    function removeRoyalty(address _nftContract) external onlyRole(STAFF_ROLE){
         delete royalties[_nftContract];
+        emit RoyaltyRemoved(msg.sender, _nftContract);
     }
 
 
     //=====ADMIN============ 
 
-    function withdraw() public payable onlyRole(DEFAULT_ADMIN_ROLE){
+    function withdraw() external payable onlyRole(DEFAULT_ADMIN_ROLE){
+        emit AdminWithdraw(msg.sender, address(this).balance);
         payable(msg.sender).sendValue(address(this).balance);
     }
 
-    function updateFees(uint16 _regFee, uint16 _memFee, uint16 _vipFee) public onlyRole(DEFAULT_ADMIN_ROLE){
+    function updateFees(uint16 _regFee, uint16 _memFee, uint16 _vipFee) external onlyRole(DEFAULT_ADMIN_ROLE){
         regFee = _regFee;
         memberFee = _memFee;
         vipFee = _vipFee;
+        emit FeesUpdate(msg.sender, _regFee, _memFee, _vipFee);
     }
 
-    function setMembershipStaker(address _membershipStaker) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setMembershipStaker(address _membershipStaker) external onlyRole(DEFAULT_ADMIN_ROLE) {
         membershipStaker = IMembershipStaker(_membershipStaker);
+        emit StakerUpdated(msg.sender, _membershipStaker);
     }
 
     receive() external payable {}

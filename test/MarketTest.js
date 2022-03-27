@@ -192,7 +192,9 @@ describe("Marketplace", async() => {
 
     it('should adjust fees', async() => {
         await expect(market.connect(alice).updateFees(100, 200)).to.be.reverted;
-        await market.connect(admin).updateFees(400, 200, 100);
+        await expect(market.connect(admin).updateFees(400, 200, 100))
+            .to.emit(market, "FeesUpdate")
+            .withArgs(admin.address, 400, 200, 100);
         await expect(await market.fee(alice.address)).to.eq(100);
         await expect(await market.fee(cs.address)).to.eq(0);
         await expect(await market.fee(dan.address)).to.eq(200);
@@ -203,7 +205,9 @@ describe("Marketplace", async() => {
         await makeListing(alice, 0)
         await market.connect(cs).makePurchase(0, {'value' : 10000})
         await expect(market.connect(staff).withdraw()).to.be.reverted;
-        await expect(await market.connect(admin).withdraw()).to.changeEtherBalance(admin, 75);
+        await expect(await market.connect(admin).withdraw())
+        .to.changeEtherBalance(admin, 75)
+        .and.to.emit(market, "AdminWithdraw").withArgs(admin.address, 75);
     });
 
     it('should cancel listing by owner', async() => {
@@ -254,6 +258,13 @@ describe("Marketplace", async() => {
         await expect(await ethers.provider.getBalance(membershipStaker.address)).to.eq(0);
     });
 
+    it('should log staker changes', async() => {
+        const newStaker = await stakingFactory.deploy();
+        await newStaker.deployed();
+        await expect(market.connect(admin).setMembershipStaker(newStaker.address))
+            .to.emit(market, "StakerUpdated")
+            .withArgs(admin.address, newStaker.address);
+    });
 
     async function makeListing(lister, id){
         await nftContract.connect(lister).setApprovalForAll(market.address, true);
@@ -264,4 +275,23 @@ describe("Marketplace", async() => {
         await nftWithRoyalties.connect(lister).setApprovalForAll(market.address, true);
         return await market.connect(lister).makeListing(nftWithRoyalties.address, id, 10000);
     }
+
+    it('should emit royalty changed', async() => {
+        await expect(market.connect(staff)
+            .removeRoyalty(nftWithRoyalties.address))
+            .to.emit(market, "RoyaltyRemoved").withArgs(staff.address, nftWithRoyalties.address);
+        
+        const check1 = await market.getRoyalty(nftWithRoyalties.address);
+        expect(check1[1]).to.eq(0);
+
+        await expect(market.connect(staff)
+            .registerRoyalty(nftWithRoyalties.address, ipHolder.address, 500))
+            .to.emit(market, "RoyaltyChanged")
+            .withArgs(staff.address, nftWithRoyalties.address, ipHolder.address, 500);
+
+        const check2 = await market.getRoyalty(nftWithRoyalties.address);
+        expect(check2[0]).to.eq(ipHolder.address);
+        expect(check2[1]).to.eq(500);
+
+    });
 })
