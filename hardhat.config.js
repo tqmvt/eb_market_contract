@@ -34,7 +34,7 @@ module.exports = {
       gasPrice: 5000000000000,
       membership: '0x8d9232Ebc4f06B7b8005CCff0ca401675ceb25F5',
       market : '0x7a3CdB2364f92369a602CAE81167d0679087e6a3',
-      staker : '0x7a3CdB2364f92369a602CAE81167d0679087e6a3',
+      staker : '0xeb074cc764F20d8fE4317ab63f45A85bcE2bEcB1',
       offers : ''
     },
     cronos_testnet : {
