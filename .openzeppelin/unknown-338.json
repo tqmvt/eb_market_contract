@@ -3332,7 +3332,7 @@
           {
             "contract": "OfferContract",
             "label": "offers",
-            "type": "t_mapping(t_bytes32,t_array(t_struct(Offer)12015_storage)dyn_storage)",
+            "type": "t_mapping(t_bytes32,t_array(t_struct(Offer)12104_storage)dyn_storage)",
             "src": "contracts/Offer.sol:60"
           },
           {
@@ -3344,7 +3344,7 @@
           {
             "contract": "OfferContract",
             "label": "marketContract",
-            "type": "t_contract(Market)11991",
+            "type": "t_contract(Market)12080",
             "src": "contracts/Offer.sol:63"
           },
           {
@@ -3361,16 +3361,16 @@
           }
         ],
         "types": {
-          "t_mapping(t_bytes32,t_array(t_struct(Offer)12015_storage)dyn_storage)": {
+          "t_mapping(t_bytes32,t_array(t_struct(Offer)12104_storage)dyn_storage)": {
             "label": "mapping(bytes32 => struct Offer[])"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_array(t_struct(Offer)12015_storage)dyn_storage": {
+          "t_array(t_struct(Offer)12104_storage)dyn_storage": {
             "label": "struct Offer[]"
           },
-          "t_struct(Offer)12015_storage": {
+          "t_struct(Offer)12104_storage": {
             "label": "struct Offer",
             "members": [
               {
@@ -3391,7 +3391,7 @@
               },
               {
                 "label": "status",
-                "type": "t_enum(Status)11997"
+                "type": "t_enum(Status)12086"
               },
               {
                 "label": "id",
@@ -3410,7 +3410,7 @@
           "t_address": {
             "label": "address"
           },
-          "t_enum(Status)11997": {
+          "t_enum(Status)12086": {
             "label": "enum Status",
             "members": [
               "Created",
@@ -3426,7 +3426,7 @@
           "t_array(t_bytes32)dyn_storage": {
             "label": "bytes32[]"
           },
-          "t_contract(Market)11991": {
+          "t_contract(Market)12080": {
             "label": "contract Market"
           },
           "t_address_payable": {
