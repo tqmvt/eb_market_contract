@@ -434,11 +434,11 @@ describe("Test Offer contract", function () {
       value: parseEther("20")
     })
 
-    // should not update when not bigger amount
-    await expect(offerContract.makeOffer(mockERC721.address, 1, {
-      from: accounts[0].address,
-      value: parseEther("20")
-    })).to.be.revertedWith("not samller than current amount");
+    // // should not update when not bigger amount
+    // await expect(offerContract.makeOffer(mockERC721.address, 1, {
+    //   from: accounts[0].address,
+    //   value: parseEther("20")
+    // })).to.be.revertedWith("not samller than current amount");
 
     // should update the offer
     await expect(offerContract.makeOffer(mockERC721.address, 1, {
@@ -452,7 +452,7 @@ describe("Test Offer contract", function () {
 
     expect(offer[1].nft).to.be.equal(mockERC721.address)
     expect(offer[1].buyer).to.be.equal(accounts[0].address)
-    expect(offer[1].amount).to.be.equal(parseEther("30"))
+    expect(offer[1].amount).to.be.equal(parseEther("50"))
     expect(offer[1].status).to.be.equal(4)    
   });
 }); 

@@ -139,6 +139,8 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
     // }
 
     function makeOffer(address _nft, uint256 _id) external payable onlyNFT(_nft) {
+        require(0 < msg.value, "invalid amount");
+
         bytes32 hash = generateHash(_nft, _id);
 
         // check if the offer already exists
@@ -159,8 +161,7 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
         } else {
             Offer memory _offer = offers[hash][offerIndex - 1];
             //should increase the offer amount
-            require(_offer.amount < msg.value, "not samller than current amount");
-            _offer.amount = msg.value;
+            _offer.amount += msg.value;
             _offer.date = block.timestamp;
             _offer.status = Status.Updated;
 
