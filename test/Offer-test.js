@@ -28,7 +28,7 @@ describe("Test Offer contract", function () {
     membershipFactory = await ethers.getContractFactory("EbisusBayMembership");
     // mockERC20Factory = await ethers.getContractFactory("MockERC20");
     offerContractFactory = await ethers.getContractFactory("OfferContract");
-    mockStakerFactory = await ethers.getContractFactory("MembershipStaker");
+    mockStakerFactory = await ethers.getContractFactory("MembershipStakerV2");
  })
 
   beforeEach(async function () {

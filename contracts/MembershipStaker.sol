@@ -29,11 +29,11 @@ UUPSUpgradeable {
 
      uint64 private constant VIP_ID = 2;
      IERC1155 private membershipContract;
-     bool private isInitPeriod;
+     bool internal isInitPeriod;
 
-    uint256 private stakeCount;
-    EnumerableSetUpgradeable.AddressSet private stakers;    
-    mapping(address => uint) private balances;
+    uint256 internal stakeCount;
+    EnumerableSetUpgradeable.AddressSet internal stakers;    
+    mapping(address => uint) internal balances;
     
     CountersUpgradeable.Counter public rewardsId;
     uint256 public epochLength;
@@ -45,7 +45,6 @@ UUPSUpgradeable {
          __Ownable_init();
          __ReentrancyGuard_init();
          __ERC1155Receiver_init();
-         __UUPSUpgradeable_init();
          membershipContract = IERC1155(_memberships);
          isInitPeriod = true;
          epochLength = 14 days;
@@ -119,7 +118,7 @@ UUPSUpgradeable {
     }
 
     //Pool
-    function updatePool() public {
+    function updatePool() public virtual {
         if(isInitPeriod) return;
         if(address(curPool) == address(0) || curPool.isClosed()){
             (address[] memory accounts, uint256[] memory amounts) = currentStaked();
@@ -150,12 +149,12 @@ UUPSUpgradeable {
         return rewardsId.current();
     }
 
-    function periodEnd() public view returns (uint256){
+    function periodEnd() public virtual view returns (uint256){
         if(address(curPool) == address(0)) return 0;
         return curPool.endTime();
     }
 
-    function poolBalance() public view returns (uint256){
+    function poolBalance() public virtual view returns (uint256){
         if(address(curPool) != address(0)){ 
             return curPool.totalReceived();
         } else {
@@ -163,7 +162,7 @@ UUPSUpgradeable {
         }
     }
 
-    function harvest(address payable _address) external {
+    function harvest(address payable _address) external virtual{
         if(address(completedPool) != address(0)){
             completedPool.release(_address);
         }
@@ -175,7 +174,7 @@ UUPSUpgradeable {
         epochLength = _length;
     }
 
-    function endInitPeriod() external onlyOwner {
+    function endInitPeriod() external virtual onlyOwner {
         isInitPeriod = false;
         updatePool();
     }
