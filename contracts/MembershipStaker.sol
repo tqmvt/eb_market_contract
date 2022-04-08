@@ -45,6 +45,7 @@ UUPSUpgradeable {
          __Ownable_init();
          __ReentrancyGuard_init();
          __ERC1155Receiver_init();
+         __UUPSUpgradeable_init();
          membershipContract = IERC1155(_memberships);
          isInitPeriod = true;
          epochLength = 14 days;
