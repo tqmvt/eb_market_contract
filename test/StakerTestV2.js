@@ -167,6 +167,13 @@ describe("MembershipStaker1", () => {
         // expect(await ethers.provider.getBalance(staker.completedPool())).to.eq(ethers.utils.parseEther("3.0"));
 
         await expect(() => staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("2.0"));
+
+        await ethers.provider.send("evm_increaseTime", [14 *24*3600 +1]);
+        await ethers.provider.send("evm_mine"); 
+        await staker.updatePool();
+
+        // first period 1.0 + second period 1.0
+        await expect(() => staker.harvest(bob.address)).to.changeEtherBalance(bob, ethers.utils.parseEther("2.0"));
     });
 
     it('should add to the next pool when staking', async () => {
