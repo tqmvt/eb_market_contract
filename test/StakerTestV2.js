@@ -42,20 +42,46 @@ describe("MembershipStaker1", () => {
         v2 = await ethers.getContractFactory("MembershipStakerV2");
         staker = await upgrades.upgradeProxy(stakerv1.address, v2);
 
-        await staker.endInitPeriod();
+        await memberships.connect(alice).setApprovalForAll(staker.address, true);
+        await memberships.connect(bob).setApprovalForAll(staker.address, true);
     })
 
     it('init to zero', async() => {
         expect(await staker.totalStaked()).to.eq(0);
     })
 
+    it ('should add more stakers and split payment correclty', async() => {
+        await memberships.connect(cs).setApprovalForAll(staker.address, true);
+
+        await staker.connect(alice).stake(1);
+        await staker.connect(bob).stake(1);
+        await staker.connect(cs).stake(3);
+        
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+          });
+
+        await staker.endInitPeriod();
+        await ethers.provider.send("evm_increaseTime", [14 * 24*3600 + 1]);
+        await ethers.provider.send("evm_mine"); 
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+          });        
+
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("1.0"));
+        await expect(await staker.harvest(bob.address)).to.changeEtherBalance(bob, ethers.utils.parseEther("1.0"));
+        await expect(await staker.harvest(cs.address)).to.changeEtherBalance(cs, ethers.utils.parseEther("3.0"));
+    })
+
     it('should add rewards to the current pool when funding', async () => {
+        await staker.endInitPeriod();
         await owner.sendTransaction({
             to: staker.address,
             value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
           });
         expect(await staker.pendingBalance()).to.eq(ethers.utils.parseEther("1.0"));
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(1);
 
         // await staker.connect(owner).endInitPeriod();
@@ -69,15 +95,14 @@ describe("MembershipStaker1", () => {
     });
 
     it('should release the rewards after epoch time', async () => {
+        await staker.endInitPeriod();
         await owner.sendTransaction({
             to: staker.address,
             value: ethers.utils.parseEther("3.0"), // Sends exactly 3.0 ether
           });
 
         expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("3.0"));
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(2);
-        await memberships.connect(bob).setApprovalForAll(staker.address, true);
         await staker.connect(bob).stake(1);
         // await staker.connect(owner).endInitPeriod();
         
@@ -102,15 +127,14 @@ describe("MembershipStaker1", () => {
     });
 
     it('should not release the rewards while initial period and epoch time', async () => {
+        await staker.endInitPeriod();
         await owner.sendTransaction({
             to: staker.address,
             value: ethers.utils.parseEther("2.0"), // Sends exactly 3.0 ether
           });
 
         // expect(await staker.poolBalance()).to.eq(ethers.utils.parseEther("2.0"));
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(1);
-        await memberships.connect(bob).setApprovalForAll(staker.address, true);
         await staker.connect(bob).stake(1);
         
         // not release while initial period
@@ -130,14 +154,13 @@ describe("MembershipStaker1", () => {
     });
 
     it('should forward unclaimed reward to the next rewardpool', async () => {
+        await staker.endInitPeriod();
         await owner.sendTransaction({
             to: staker.address,
             value: ethers.utils.parseEther("3.0"), // Sends exactly 3.0 ether
           });
 
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(2);
-        await memberships.connect(bob).setApprovalForAll(staker.address, true);
         await staker.connect(bob).stake(1);
 
         // await staker.connect(owner).endInitPeriod();
@@ -177,12 +200,12 @@ describe("MembershipStaker1", () => {
     });
 
     it('should add to the next pool when staking', async () => {
+        await staker.endInitPeriod();
         await owner.sendTransaction({
             to: staker.address,
             value: ethers.utils.parseEther("2.0"), // Sends exactly 3.0 ether
           });
 
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(1);
 
         // await staker.connect(owner).endInitPeriod();
@@ -191,7 +214,6 @@ describe("MembershipStaker1", () => {
         await ethers.provider.send("evm_mine"); 
         await staker.updatePool();
 
-        await memberships.connect(bob).setApprovalForAll(staker.address, true);
         await staker.connect(bob).stake(1);
         await owner.sendTransaction({
             to: staker.address,
@@ -211,7 +233,7 @@ describe("MembershipStaker1", () => {
     });
 
     it('should update report the correct number staked', async() => {
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
+        await staker.endInitPeriod();
         expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
 
         await expect(staker.connect(alice).stake(1))
@@ -230,7 +252,7 @@ describe("MembershipStaker1", () => {
     });
 
     it('should not let user unstake more than staked', async () => {
-        await memberships.connect(bob).setApprovalForAll(staker.address, true);
+        await staker.endInitPeriod();
         expect(await memberships.balanceOf(bob.address, VIPID)).to.eq(1);
         await staker.connect(bob).stake(1);
         await expect(staker.connect(bob).unstake(2))
@@ -240,7 +262,7 @@ describe("MembershipStaker1", () => {
     });
 
     it('should report correct amount unstaked', async () => {
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
+        await staker.endInitPeriod();
         expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
         await staker.connect(alice).stake(2)
         expect(await staker.totalStaked()).to.eq(2);
@@ -262,8 +284,7 @@ describe("MembershipStaker1", () => {
     });
 
     it('should return all stakers and amounts', async() => {
-        await memberships.connect(alice).setApprovalForAll(staker.address, true);
-        await memberships.connect(bob).setApprovalForAll(staker.address, true);
+        await staker.endInitPeriod();
         await memberships.connect(cs).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(2);
         await staker.connect(bob).stake(1);
