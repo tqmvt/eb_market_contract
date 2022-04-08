@@ -15,6 +15,10 @@ contract MembershipStakerV2 is MembershipStaker, PullPaymentUpgradeable {
     uint256 private pendingStakeCount;
     mapping(address => uint) private availableBalances;
 
+    function init() external onlyOwner {
+        __PullPayment_init();
+        lastChecked = block.timestamp;
+    }
     function calculateRewards() private {
         if (pendingStakeCount < 0) return;
 
@@ -67,8 +71,6 @@ contract MembershipStakerV2 is MembershipStaker, PullPaymentUpgradeable {
 
     function endInitPeriod() external override onlyOwner {
         isInitPeriod = false;
-        __PullPayment_init();
-        lastChecked = block.timestamp;
         concatPendingValues();
         availableBalance = address(this).balance;
     }

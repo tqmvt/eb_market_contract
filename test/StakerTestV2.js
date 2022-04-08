@@ -41,6 +41,7 @@ describe("MembershipStaker1", () => {
 
         v2 = await ethers.getContractFactory("MembershipStakerV2");
         staker = await upgrades.upgradeProxy(stakerv1.address, v2);
+        await staker.init();
 
         await memberships.connect(alice).setApprovalForAll(staker.address, true);
         await memberships.connect(bob).setApprovalForAll(staker.address, true);
