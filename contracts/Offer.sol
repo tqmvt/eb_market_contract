@@ -22,6 +22,7 @@ abstract contract Market {
     //Returns fee as a percent in 10k scale (ie 300 = 3%)
     function fee(address user) public virtual view returns (uint16 userFee);
     function addToEscrow(address _address) external virtual payable;
+    function cancelActive(address _nft, uint256 _id, address _seller) virtual external;
 }
 
 enum Status {
@@ -237,6 +238,8 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
  
             (sent, ) = payable(msg.sender).call{value: amount}("");
             require(sent, "transfer failed to the seller");
+
+            marketContract.cancelActive(_offer.nft, _offer.id, msg.sender);
         }
 
          //transfer nft
