@@ -157,7 +157,7 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
 
             offers[hash].push(_offer);
             userOfferInfo[msg.sender][hash] = offers[hash].length;
-            offerIndex = 1;
+            offerIndex = offers[hash].length;
             emit  OfferMade(_nft, _id, offerIndex - 1, msg.sender, msg.value, address(0), _offer.date);
         } else {
             Offer memory _offer = offers[hash][offerIndex - 1];
@@ -167,7 +167,7 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
             _offer.status = Status.Updated;
 
             offers[hash][offerIndex - 1] = _offer;
-            emit  OfferUpdated(_nft, _id, offerIndex - 1, msg.sender, msg.value, address(0), _offer.date);
+            emit  OfferUpdated(_nft, _id, offerIndex - 1, msg.sender, _offer.amount, address(0), _offer.date);
         }
     }
 
