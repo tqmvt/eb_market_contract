@@ -455,5 +455,92 @@ describe("Test Offer contract", function () {
     expect(offer[1].amount).to.be.equal(parseEther("50"))
     expect(offer[1].status).to.be.equal(4)    
   });
+
+  it("Should create another offer when upading accepted offer", async function () {
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("20")
+    })
+
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]);
+    await offerContract.acceptOffer(hash, 0);
+    
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("30")
+    })
+
+    const offer1 = await offerContract.getOffer(hash, 0);
+
+    expect(offer1[1].nft).to.be.equal(mockERC721.address)
+    expect(offer1[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer1[1].amount).to.be.equal(parseEther("20"))
+    expect(offer1[1].status).to.be.equal(3)    
+
+    const offer2 = await offerContract.getOffer(hash, 1);
+
+    expect(offer2[1].nft).to.be.equal(mockERC721.address)
+    expect(offer2[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer2[1].amount).to.be.equal(parseEther("30"))
+    expect(offer2[1].status).to.be.equal(0);
+  });
+
+  it("Should create another offer when upading rejected offer", async function () {
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("20")
+    })
+
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]);
+    await offerContract.rejectOffer(hash, 0);
+    
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("30")
+    })
+
+    const offer1 = await offerContract.getOffer(hash, 0);
+
+    expect(offer1[1].nft).to.be.equal(mockERC721.address)
+    expect(offer1[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer1[1].amount).to.be.equal(parseEther("20"))
+    expect(offer1[1].status).to.be.equal(1)    
+
+    const offer2 = await offerContract.getOffer(hash, 1);
+
+    expect(offer2[1].nft).to.be.equal(mockERC721.address)
+    expect(offer2[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer2[1].amount).to.be.equal(parseEther("30"))
+    expect(offer2[1].status).to.be.equal(0)    
+  });
+
+  it("Should create another offer when upading cancelled offer", async function () {
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("20")
+    })
+
+    const hash = ethers.utils.solidityKeccak256(["address", "uint"], [mockERC721.address, 1]);
+    await offerContract.cancelOffer(hash, 0);
+    
+    await offerContract.makeOffer(mockERC721.address, 1, {
+      from: accounts[0].address,
+      value: parseEther("30")
+    })
+
+    const offer1 = await offerContract.getOffer(hash, 0);
+
+    expect(offer1[1].nft).to.be.equal(mockERC721.address)
+    expect(offer1[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer1[1].amount).to.be.equal(parseEther("20"))
+    expect(offer1[1].status).to.be.equal(2)    
+
+    const offer2 = await offerContract.getOffer(hash, 1);
+
+    expect(offer2[1].nft).to.be.equal(mockERC721.address)
+    expect(offer2[1].buyer).to.be.equal(accounts[0].address)
+    expect(offer2[1].amount).to.be.equal(parseEther("30"))
+    expect(offer2[1].status).to.be.equal(0)    
+  });
 }); 
 
