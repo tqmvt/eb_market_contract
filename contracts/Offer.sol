@@ -146,7 +146,11 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
 
         // check if the offer already exists
         uint256 offerIndex = userOfferInfo[msg.sender][hash];
-        if (offerIndex == 0 ) {
+
+        if (offerIndex == 0 
+            || offers[hash][offerIndex - 1].status == Status.Rejected 
+            || offers[hash][offerIndex - 1].status == Status.Cancelled
+            || offers[hash][offerIndex - 1].status == Status.Accepted) {
             Offer memory _offer;
             _offer.nft = _nft;
             _offer.id = _id;
