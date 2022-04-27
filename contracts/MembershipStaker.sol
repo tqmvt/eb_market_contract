@@ -57,7 +57,7 @@ UUPSUpgradeable {
         override
     {}
 
-    function stake(uint256 amount) override external {
+    function stake(uint256 amount) override virtual external {
         require(amount > 0, "invalid amount");
         require(membershipContract.balanceOf(msg.sender, VIP_ID) >= amount, "invalid balance");
         balances[msg.sender] = balances[msg.sender] + amount;
@@ -68,7 +68,7 @@ UUPSUpgradeable {
         emit MembershipStaked(msg.sender, balances[msg.sender]);
     }
 
-    function unstake(uint256 amount) override external nonReentrant {
+    function unstake(uint256 amount) override virtual external nonReentrant {
         require(balances[msg.sender] >= amount, "invalid amount");
         membershipContract.safeTransferFrom(address(this), msg.sender, VIP_ID, amount, "");
         balances[msg.sender] = balances[msg.sender] - amount;
@@ -178,5 +178,13 @@ UUPSUpgradeable {
     function endInitPeriod() external virtual onlyOwner {
         isInitPeriod = false;
         updatePool();
+    }
+
+    function getVIPID() internal pure returns(uint64){
+        return VIP_ID;
+    }
+
+    function getMemberShipAddress() internal view returns(IERC1155){
+        return membershipContract;
     }
 }

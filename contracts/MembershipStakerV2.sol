@@ -3,85 +3,77 @@
 pragma solidity 0.8.4;
 
 import "./MembershipStaker.sol";
-import "./PullPaymentUpgradeable.sol";
 
-contract MembershipStakerV2 is MembershipStaker, PullPaymentUpgradeable {
+contract MembershipStakerV2 is MembershipStaker {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
-
-    uint256 public lastChecked;
-    uint256 public pendingBalance;
-    uint256 public availableBalance;
-    EnumerableSetUpgradeable.AddressSet private availableStakers;
-    uint256 private pendingStakeCount;
-    mapping(address => uint) private availableBalances;
-
-    function init() external onlyOwner {
-        __PullPayment_init();
-        lastChecked = block.timestamp;
-    }
-    function calculateRewards() private {
-        if (pendingStakeCount < 0) return;
-
-        uint256 len = availableStakers.length();
-        uint256 amount;
-        uint256 sum;
-        for (uint i = 0; i < len; i++){
-            amount = availableBalances[availableStakers.at(i)];
-            sum += amount;
-        }
-
-        for (uint i = 0; i < len; i++){
-             amount = availableBalance * availableBalances[availableStakers.at(i)] / sum;
-             _asyncTransfer(availableStakers.at(i), amount);
-        }
-    }
-
-    function concatPendingValues() private {
-        uint256 len = stakers.length();
-        for (uint i = 0; i < len; i++){
-            availableStakers.add(stakers.at(i));
-            availableBalances[stakers.at(i)] = balances[stakers.at(i)];
-        }
-
-        pendingStakeCount =stakeCount;
-    }
-    //Pool
-    function updatePool() public override {
-        if(isInitPeriod) return;
-
-        if (lastChecked + epochLength <= block.timestamp) {
-            calculateRewards();
-            availableBalance = pendingBalance;
-            
-            pendingBalance = 0;
-            
-            concatPendingValues();
-            lastChecked = block.timestamp;
-        } 
-    }
+    uint256 private pendingAmount;
+    uint256 private totalDistribution;
+    mapping(address => uint256) private distributions;
 
     function harvest(address payable _address) external override nonReentrant {
-        super.withdrawPayments(_address);
-        updatePool();
+        payRewards(_address);
     }
 
-    function poolBalance() public view override returns (uint256){
-       return pendingBalance;
+    function distribute() private {
+        if (pendingAmount > 0) {
+            totalDistribution += pendingAmount / stakeCount;
+            pendingAmount = 0;
+        }
+    }
+
+    function payRewards(address _address) private {
+        distribute();
+        if(totalDistribution > 0 && balances[_address] > 0) {
+            uint256 reward = (totalDistribution - distributions[_address]) * balances[_address];
+            payable(_address).call{value: reward}("");
+        }
+    }
+
+    function stake(uint256 amount) override external {
+        require(amount > 0, "invalid amount");
+        require(getMemberShipAddress().balanceOf(msg.sender, getVIPID()) >= amount, "invalid balance");
+        payRewards(msg.sender);
+        distributions[msg.sender] = totalDistribution;
+
+        balances[msg.sender] = balances[msg.sender] + amount;
+        stakeCount += amount;
+        stakers.add(msg.sender);
+        getMemberShipAddress().safeTransferFrom(msg.sender, address(this), getVIPID(), amount, "");
+
+        emit MembershipStaked(msg.sender, balances[msg.sender]);
+    }
+
+    function unstake(uint256 amount) override external nonReentrant {
+        require(balances[msg.sender] >= amount, "invalid amount");
+        payRewards(msg.sender);
+        distributions[msg.sender] = totalDistribution;
+
+        getMemberShipAddress().safeTransferFrom(address(this), msg.sender, getVIPID(), amount, "");
+        balances[msg.sender] = balances[msg.sender] - amount;
+        stakeCount -= amount;
+        if(balances[msg.sender] == 0){
+            stakers.remove(msg.sender);
+        }
+
+        emit MembershipUnstaked(msg.sender, balances[msg.sender]);
+    }
+
+    receive() external payable virtual override{
+        pendingAmount += msg.value;
     }
 
     function endInitPeriod() external override onlyOwner {
         isInitPeriod = false;
-        concatPendingValues();
-        availableBalance = address(this).balance;
+        pendingAmount = address(this).balance;
+        distribute();
+    }
+
+    function poolBalance() public view override returns (uint256){
+       return 0;
     }
 
     function periodEnd() public override view returns (uint256){
-        return lastChecked + epochLength;
-    }
-
-    receive() external payable virtual override{
-        updatePool();
-        pendingBalance += msg.value;
+        return block.timestamp;
     }
 
     function name() public pure returns (string memory){
