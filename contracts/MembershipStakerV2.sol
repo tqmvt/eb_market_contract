@@ -69,7 +69,7 @@ contract MembershipStakerV2 is MembershipStaker {
     }
 
     function poolBalance() public view override returns (uint256){
-       return 0;
+       return pendingAmount;
     }
 
     function periodEnd() public override view returns (uint256){
