@@ -26,6 +26,7 @@ contract MembershipStakerV2 is MembershipStaker {
         if(totalDistribution > 0 && balances[_address] > 0) {
             uint256 reward = (totalDistribution - distributions[_address]) * balances[_address];
             payable(_address).call{value: reward}("");
+            distributions[msg.sender] = totalDistribution;
         }
     }
 
@@ -33,7 +34,6 @@ contract MembershipStakerV2 is MembershipStaker {
         require(amount > 0, "invalid amount");
         require(getMemberShipAddress().balanceOf(msg.sender, getVIPID()) >= amount, "invalid balance");
         payRewards(msg.sender);
-        distributions[msg.sender] = totalDistribution;
 
         balances[msg.sender] = balances[msg.sender] + amount;
         stakeCount += amount;
@@ -46,7 +46,6 @@ contract MembershipStakerV2 is MembershipStaker {
     function unstake(uint256 amount) override external nonReentrant {
         require(balances[msg.sender] >= amount, "invalid amount");
         payRewards(msg.sender);
-        distributions[msg.sender] = totalDistribution;
 
         getMemberShipAddress().safeTransferFrom(address(this), msg.sender, getVIPID(), amount, "");
         balances[msg.sender] = balances[msg.sender] - amount;
