@@ -76,6 +76,36 @@ describe("MembershipStaker1", () => {
         await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("0"));
     })
 
+    it ('should return 0 when no staked or no deposited', async() => {
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("0"));
+    })
+
+    it ('should get reward', async() => {
+        await memberships.connect(cs).setApprovalForAll(staker.address, true);
+
+        await staker.connect(alice).stake(1);
+        await staker.connect(bob).stake(1);
+        await staker.connect(cs).stake(3);
+        
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+          });
+
+        await staker.endInitPeriod();
+
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+          });        
+        
+        expect(await staker.getReward(alice.address)).to.be.equal(ethers.utils.parseEther("2.0"));
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("2.0"));
+        
+        expect(await staker.getReward(alice.address)).to.be.equal(ethers.utils.parseEther("0.0"));
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("0"));
+    })
+
     it ('should add more deposit and split payment correclty', async() => {
         await memberships.connect(cs).setApprovalForAll(staker.address, true);
 
