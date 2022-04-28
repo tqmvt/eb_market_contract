@@ -12,7 +12,7 @@ contract MembershipStakerV2 is MembershipStaker {
     uint256 private totalDistribution;
     mapping(address => uint256) private distributions;
 
-    function harvest(address payable _address) external override nonReentrant {
+    function harvest(address payable _address) external override {
         payRewards(_address);
     }
 
@@ -32,7 +32,7 @@ contract MembershipStakerV2 is MembershipStaker {
         }
     }
 
-    function payRewards(address _address) private {
+    function payRewards(address _address) private nonReentrant {
         distribute();
         if(totalDistribution > 0 && balances[_address] > 0) {
             uint256 reward = (totalDistribution - distributions[_address]) * balances[_address];
@@ -58,7 +58,7 @@ contract MembershipStakerV2 is MembershipStaker {
         emit MembershipStaked(msg.sender, balances[msg.sender]);
     }
 
-    function unstake(uint256 amount) override external nonReentrant {
+    function unstake(uint256 amount) override external {
         require(balances[msg.sender] >= amount, "invalid amount");
         payRewards(msg.sender);
 

@@ -1317,11 +1317,6 @@
       "kind": "uups"
     },
     {
-      "address": "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0",
-      "txHash": "0xa1062b8e6ce3b0eb960d9875a07bc9d555013b77e45650de55f7bd9c90f2cad1",
-      "kind": "uups"
-    },
-    {
       "address": "0x2E2Ed0Cfd3AD2f1d34481277b3204d807Ca2F8c2",
       "txHash": "0x41bf2ec4e277a18c4a726b1fff867c4aea3392cd8bcc3fee4e5fed2dc31c29a2",
       "kind": "uups"
@@ -2092,28 +2087,33 @@
       "kind": "uups"
     },
     {
+      "address": "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0",
+      "txHash": "0x99011c874c5546346a7e86d8659f766e5e7490e0a41d586937ec31d2752e5e10",
+      "kind": "uups"
+    },
+    {
       "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       "txHash": "0xb86fc41899520c1ac7fdf37c67495adbe14cf2169ff098b617f6915214dad495",
       "kind": "uups"
     },
     {
       "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
-      "txHash": "0x52134f6b0910d04fda6951151f4810a514afc65015a3a38211d667c17ab8a5c7",
+      "txHash": "0xda8024905a5492c14ac876ae42785110767a90c3a22e85e4f5036278c19409bc",
       "kind": "uups"
     },
     {
       "address": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
-      "txHash": "0xca156857e367738be8dada7f0cd2a38f5a2c85e2effd7c8260512204c42230ec",
+      "txHash": "0xeb00a81390a75a87a7ff74297f293ea7eaf43a6500560f8e206249fa0297466f",
       "kind": "uups"
     },
     {
       "address": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
-      "txHash": "0xf8dd1f8771c534306a76396381954dfd85a78dd6b65fad2e6c678f2b026d7539",
+      "txHash": "0x15ec39b8c5af5e79da18f9641e05a09c1eb96e2cbcbe3e7d7ce5e987cc21c070",
       "kind": "uups"
     },
     {
       "address": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
-      "txHash": "0xd0e1a6e1a7c57f4b5383b991fd559d7ca3d9bc19ac23cdfcc1b1c1128f29c982",
+      "txHash": "0x294db2fd7d3f0500e8d89ee55cc620cc327e3f0a693d77537da63affeae46b94",
       "kind": "uups"
     },
     {
@@ -3596,19 +3596,19 @@
           {
             "contract": "MembershipStaker",
             "label": "pools",
-            "type": "t_array(t_contract(RewardsPool)13992)dyn_storage",
+            "type": "t_array(t_contract(RewardsPool)13990)dyn_storage",
             "src": "contracts\\MembershipStaker.sol:40"
           },
           {
             "contract": "MembershipStaker",
             "label": "curPool",
-            "type": "t_contract(RewardsPool)13992",
+            "type": "t_contract(RewardsPool)13990",
             "src": "contracts\\MembershipStaker.sol:41"
           },
           {
             "contract": "MembershipStaker",
             "label": "completedPool",
-            "type": "t_contract(RewardsPool)13992",
+            "type": "t_contract(RewardsPool)13990",
             "src": "contracts\\MembershipStaker.sol:42"
           }
         ],
@@ -3668,10 +3668,10 @@
               }
             ]
           },
-          "t_array(t_contract(RewardsPool)13992)dyn_storage": {
+          "t_array(t_contract(RewardsPool)13990)dyn_storage": {
             "label": "contract RewardsPool[]"
           },
-          "t_contract(RewardsPool)13992": {
+          "t_contract(RewardsPool)13990": {
             "label": "contract RewardsPool"
           },
           "t_array(t_uint256)50_storage": {
@@ -3904,9 +3904,9 @@
         }
       }
     },
-    "be1c71475b49d478cc34c50cc7431fd07c1a2881b1664e84fba3118b9c6ca789": {
+    "8c7557c5563fcaf4c102b12015acfcf1f1eb975cd9f0e214bae35cd7f8ababea": {
       "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "txHash": "0x0b13593f7e3328656c9f816d8a3e15743d2842b91784056ede45575c5c1be7cd",
+      "txHash": "0x122be021912a6938e01136aa6f3949d4a06d23e792aa8907b18f7894a1b4f8d5",
       "layout": {
         "storage": [
           {
@@ -4020,19 +4020,19 @@
           {
             "contract": "MembershipStaker",
             "label": "pools",
-            "type": "t_array(t_contract(RewardsPool)13992)dyn_storage",
+            "type": "t_array(t_contract(RewardsPool)13990)dyn_storage",
             "src": "contracts\\MembershipStaker.sol:40"
           },
           {
             "contract": "MembershipStaker",
             "label": "curPool",
-            "type": "t_contract(RewardsPool)13992",
+            "type": "t_contract(RewardsPool)13990",
             "src": "contracts\\MembershipStaker.sol:41"
           },
           {
             "contract": "MembershipStaker",
             "label": "completedPool",
-            "type": "t_contract(RewardsPool)13992",
+            "type": "t_contract(RewardsPool)13990",
             "src": "contracts\\MembershipStaker.sol:42"
           },
           {
@@ -4110,10 +4110,10 @@
               }
             ]
           },
-          "t_array(t_contract(RewardsPool)13992)dyn_storage": {
+          "t_array(t_contract(RewardsPool)13990)dyn_storage": {
             "label": "contract RewardsPool[]"
           },
-          "t_contract(RewardsPool)13992": {
+          "t_contract(RewardsPool)13990": {
             "label": "contract RewardsPool"
           },
           "t_array(t_uint256)50_storage": {
