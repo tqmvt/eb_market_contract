@@ -7,10 +7,15 @@ import "./MembershipStaker.sol";
 contract MembershipStakerV2 is MembershipStaker {
     event Harvest (address indexed, uint256 amount);
 
+    struct RewardInfo {
+        uint256 totalDistribution;
+        uint256 totalReward;
+    }
+
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     uint256 private pendingAmount;
     uint256 private totalDistribution;
-    mapping(address => uint256) private distributions;
+    mapping(address => RewardInfo) private rewardInfos;
 
     function harvest(address payable _address) external override {
         payRewards(_address);
@@ -23,28 +28,33 @@ contract MembershipStakerV2 is MembershipStaker {
         }
     }
 
-    function getReward(address _address) public view returns(uint256) {
+    function getReward(address _address) external view returns(uint256) {
         if (pendingAmount > 0 && stakeCount > 0 && totalDistribution > 0 && balances[_address] > 0) {
-            uint256 reward = (totalDistribution + pendingAmount / stakeCount - distributions[_address]) * balances[_address];
+            uint256 reward = (totalDistribution + pendingAmount / stakeCount - rewardInfos[_address].totalDistribution) * balances[_address];
             return reward;
         } else {
             return 0;
         }
     }
 
+    function getReleasedReward(address _address) external view returns(uint256) {
+        return rewardInfos[_address].totalReward;
+    }
+
     function payRewards(address _address) private nonReentrant {
         distribute();
 
         if(totalDistribution > 0 && balances[_address] > 0) {
-            uint256 reward = (totalDistribution - distributions[_address]) * balances[_address];
+            uint256 reward = (totalDistribution - rewardInfos[_address].totalDistribution) * balances[_address];
             if (reward > 0) {
                 (bool success, ) = payable(_address).call{value: reward}("");
                 require(success, "failed to pay reward");
+                rewardInfos[_address].totalReward += reward;
 
                 emit Harvest(_address, reward);
             }
         }
-        distributions[_address] = totalDistribution;
+        rewardInfos[_address].totalDistribution = totalDistribution;
     }
 
     function stake(uint256 amount) override external {

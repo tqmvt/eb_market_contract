@@ -59,14 +59,14 @@ describe("MembershipStaker1", () => {
         
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
           });
 
         await staker.endInitPeriod();
 
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
           });        
 
         await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("2.0"));
@@ -89,14 +89,14 @@ describe("MembershipStaker1", () => {
         
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
           });
 
         await staker.endInitPeriod();
 
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
           });        
         
         expect(await staker.getReward(alice.address)).to.be.equal(ethers.utils.parseEther("2.0"));
@@ -115,11 +115,11 @@ describe("MembershipStaker1", () => {
         
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
           });
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("5.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
           });  
 
 
@@ -127,7 +127,7 @@ describe("MembershipStaker1", () => {
         await expect(await staker.connect(alice).stake(3)).to.changeEtherBalance(alice, ethers.utils.parseEther("2.0"));     
         await owner.sendTransaction({
             to: staker.address,
-            value: ethers.utils.parseEther("3.0"), // Sends exactly 1.0 ether
+            value: ethers.utils.parseEther("3.0"), // Sends exactly 3.0 ether
           }); 
 
         await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("1.5"));
@@ -155,6 +155,35 @@ describe("MembershipStaker1", () => {
         
         await expect(await staker.harvest(bob.address)).to.changeEtherBalance(bob, ethers.utils.parseEther("1"));
         await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("11"));
+    })
+
+    it ('should get released reward', async() => {
+        await memberships.connect(cs).setApprovalForAll(staker.address, true);
+
+        await staker.connect(alice).stake(1);
+        await staker.connect(bob).stake(1);
+        await staker.connect(cs).stake(3);
+        
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
+          });
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
+          });  
+
+
+        await memberships.connect(alice).mint(VIPID, 3, empty, {'value' : 3000})
+        await expect(await staker.connect(alice).stake(3)).to.changeEtherBalance(alice, ethers.utils.parseEther("2.0"));     
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("3.0"), // Sends exactly 3.0 ether
+          }); 
+
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("1.5"));
+
+        expect(await staker.getReleasedReward(alice.address)).to.be.equal(ethers.utils.parseEther("3.5"))
     })
 
     it('should update report the correct number staked', async() => {
