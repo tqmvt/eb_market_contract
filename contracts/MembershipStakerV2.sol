@@ -34,15 +34,17 @@ contract MembershipStakerV2 is MembershipStaker {
 
     function payRewards(address _address) private nonReentrant {
         distribute();
+
         if(totalDistribution > 0 && balances[_address] > 0) {
             uint256 reward = (totalDistribution - distributions[_address]) * balances[_address];
             if (reward > 0) {
                 (bool success, ) = payable(_address).call{value: reward}("");
                 require(success, "failed to pay reward");
-                distributions[_address] = totalDistribution;
+
                 emit Harvest(_address, reward);
             }
         }
+        distributions[_address] = totalDistribution;
     }
 
     function stake(uint256 amount) override external {

@@ -133,6 +133,30 @@ describe("MembershipStaker1", () => {
         await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("1.5"));
     })
 
+    it ('should pay reward in the next block', async() => {
+        await memberships.connect(cs).setApprovalForAll(staker.address, true);
+        await staker.connect(alice).stake(1);
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
+          });
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
+          });  
+
+        await staker.connect(bob).stake(1);
+        
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("2.0"), // Sends exactly 2.0 ether
+          });
+
+        
+        await expect(await staker.harvest(bob.address)).to.changeEtherBalance(bob, ethers.utils.parseEther("1"));
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("11"));
+    })
+
     it('should update report the correct number staked', async() => {
         await staker.endInitPeriod();
         expect(await memberships.balanceOf(alice.address, VIPID)).to.eq(2);
