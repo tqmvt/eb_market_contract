@@ -15,8 +15,10 @@ contract MembershipStakerV2 is MembershipStaker {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     uint256 private pendingAmount;
     uint256 private totalDistribution;
+    
     mapping(address => RewardInfo) private rewardInfos;
-
+    uint256 public rewardsPaid;
+    
     function harvest(address payable _address) external override {
         payRewards(_address);
     }
@@ -46,15 +48,18 @@ contract MembershipStakerV2 is MembershipStaker {
 
         if(totalDistribution > 0 && balances[_address] > 0) {
             uint256 reward = (totalDistribution - rewardInfos[_address].totalDistribution) * balances[_address];
+            rewardInfos[_address].totalDistribution = totalDistribution;
             if (reward > 0) {
+                rewardInfos[_address].totalReward += reward;
                 (bool success, ) = payable(_address).call{value: reward}("");
                 require(success, "failed to pay reward");
-                rewardInfos[_address].totalReward += reward;
-
+                rewardsPaid += reward;
                 emit Harvest(_address, reward);
             }
+        } else {
+            rewardInfos[_address].totalDistribution = totalDistribution;
         }
-        rewardInfos[_address].totalDistribution = totalDistribution;
+        
     }
 
     function stake(uint256 amount) override external {
