@@ -27,7 +27,7 @@ module.exports = {
 
     },
     cronos : {
-      url : "https://rpc.ebisusbay.com/",
+      url : "https://gateway.nebkas.ro/",
       chainId: 25,
       gasPrice: 5000000000000,
       accounts: process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],
@@ -35,10 +35,10 @@ module.exports = {
       membership: '0x8d9232Ebc4f06B7b8005CCff0ca401675ceb25F5',
       market : '0x7a3CdB2364f92369a602CAE81167d0679087e6a3',
       staker : '0xeb074cc764F20d8fE4317ab63f45A85bcE2bEcB1',
-      offers : ''
+      offers : '0x016b347aEB70cC45E3BbaF324feB3c7C464E18B0'
     },
     cronos_testnet : {
-      url : "https://rpc.ebisusbay.biz:8545/",
+      url : "https://rpc.ebisusbay.biz/",
       chainId : 338,
       gasPrice: 5000000000000,
       accounts:  process.env.SIGNER !== undefined ? [process.env.SIGNER] : [],

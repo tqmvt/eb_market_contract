@@ -223,14 +223,22 @@ contract Marketplace is
         _asyncTransfer(_address, msg.value);
     }
 
-    function cancelListing(uint256 _id) external {
+    function cancelListing(uint256 _id) public {
         require(activeListings.containsId(_id), "invalid id");
         IterableMapping.Listing memory listing = activeListings.getById(_id);
-        require(listing.seller == msg.sender || hasRole(STAFF_ROLE, msg.sender), "not lister");
+        require(listing.seller == msg.sender || hasRole(STAFF_ROLE, msg.sender) || hasRole(SERVER_ROLE, msg.sender), "not lister");
         listing.saleTime = block.timestamp;
         activeListings.remove(activeListings.keyForId(_id));
         cancelledListings.set(keccak256(abi.encodePacked(_id)), listing);
         emit Cancelled(_id);
+    }
+
+    function cancelActive(address _nft, uint256 _id, address _seller) external {
+        bytes32 listingHash = keccak256(abi.encode(_nft, _seller, _id));
+        if(activeListings.contains(listingHash)){
+            IterableMapping.Listing storage listing = activeListings.get(listingHash);
+            cancelListing(listing.listingId);
+        }
     }
 
     /**\

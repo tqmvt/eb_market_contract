@@ -22,6 +22,7 @@ abstract contract Market {
     //Returns fee as a percent in 10k scale (ie 300 = 3%)
     function fee(address user) public virtual view returns (uint16 userFee);
     function addToEscrow(address _address) external virtual payable;
+    function cancelActive(address _nft, uint256 _id, address _seller) virtual external;
 }
 
 enum Status {
@@ -145,7 +146,11 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
 
         // check if the offer already exists
         uint256 offerIndex = userOfferInfo[msg.sender][hash];
-        if (offerIndex == 0 ) {
+
+        if (offerIndex == 0 
+            || offers[hash][offerIndex - 1].status == Status.Rejected 
+            || offers[hash][offerIndex - 1].status == Status.Cancelled
+            || offers[hash][offerIndex - 1].status == Status.Accepted) {
             Offer memory _offer;
             _offer.nft = _nft;
             _offer.id = _id;
@@ -156,7 +161,7 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
 
             offers[hash].push(_offer);
             userOfferInfo[msg.sender][hash] = offers[hash].length;
-            offerIndex = 1;
+            offerIndex = offers[hash].length;
             emit  OfferMade(_nft, _id, offerIndex - 1, msg.sender, msg.value, address(0), _offer.date);
         } else {
             Offer memory _offer = offers[hash][offerIndex - 1];
@@ -166,7 +171,7 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
             _offer.status = Status.Updated;
 
             offers[hash][offerIndex - 1] = _offer;
-            emit  OfferUpdated(_nft, _id, offerIndex - 1, msg.sender, msg.value, address(0), _offer.date);
+            emit  OfferUpdated(_nft, _id, offerIndex - 1, msg.sender, _offer.amount, address(0), _offer.date);
         }
     }
 
@@ -237,6 +242,8 @@ contract OfferContract is ReentrancyGuardUpgradeable, AccessControlUpgradeable, 
  
             (sent, ) = payable(msg.sender).call{value: amount}("");
             require(sent, "transfer failed to the seller");
+
+            marketContract.cancelActive(_offer.nft, _offer.id, msg.sender);
         }
 
          //transfer nft
