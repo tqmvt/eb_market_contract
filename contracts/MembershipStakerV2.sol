@@ -18,7 +18,7 @@ contract MembershipStakerV2 is MembershipStaker {
     
     mapping(address => RewardInfo) private rewardInfos;
     uint256 public rewardsPaid;
-    
+
     function harvest(address payable _address) external override {
         payRewards(_address);
     }
@@ -90,10 +90,12 @@ contract MembershipStakerV2 is MembershipStaker {
     }
 
     receive() external payable virtual override{
+        if(isInitPeriod) return;
         pendingAmount += msg.value;
     }
 
     function endInitPeriod() external override onlyOwner {
+        require(isInitPeriod, "already begun");
         isInitPeriod = false;
         pendingAmount = address(this).balance;
         distribute();
