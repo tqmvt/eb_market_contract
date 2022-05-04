@@ -3,7 +3,7 @@ const { ethers, upgrades } = require("hardhat");
 const { BigNumber } = require("@ethersproject/bignumber");
 
 
-describe("MembershipStaker1", () => {
+describe("MembershipStaker2", () => {
 
     const VIPID = 2;
     const empty = ethers.utils.formatBytes32String("");
@@ -48,6 +48,28 @@ describe("MembershipStaker1", () => {
 
     it('init to zero', async() => {
         expect(await staker.totalStaked()).to.eq(0);
+    })
+
+    it ('should not pay before end period', async() => {
+        await memberships.connect(cs).setApprovalForAll(staker.address, true);
+
+        await staker.connect(alice).stake(1);
+        await staker.connect(bob).stake(1);
+        await staker.connect(cs).stake(3);
+        
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
+          });
+
+        await owner.sendTransaction({
+            to: staker.address,
+            value: ethers.utils.parseEther("5.0"), // Sends exactly 5.0 ether
+          });        
+
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("0"));
+        await staker.endInitPeriod();
+        await expect(await staker.harvest(alice.address)).to.changeEtherBalance(alice, ethers.utils.parseEther("2.0"));
     })
 
     it ('should add more stakers and split payment correclty', async() => {
@@ -107,6 +129,7 @@ describe("MembershipStaker1", () => {
     })
 
     it ('should add more deposit and split payment correclty', async() => {
+        await staker.endInitPeriod();
         await memberships.connect(cs).setApprovalForAll(staker.address, true);
 
         await staker.connect(alice).stake(1);
@@ -134,6 +157,7 @@ describe("MembershipStaker1", () => {
     })
 
     it ('should pay reward in the next block', async() => {
+        await staker.endInitPeriod();
         await memberships.connect(cs).setApprovalForAll(staker.address, true);
         await staker.connect(alice).stake(1);
         await owner.sendTransaction({
@@ -158,6 +182,7 @@ describe("MembershipStaker1", () => {
     })
 
     it ('should get released reward', async() => {
+        await staker.endInitPeriod();
         await memberships.connect(cs).setApprovalForAll(staker.address, true);
 
         await staker.connect(alice).stake(1);
