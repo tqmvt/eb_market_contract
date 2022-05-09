@@ -31,7 +31,7 @@ contract MembershipStakerV2 is MembershipStaker {
     }
 
     function getReward(address _address) external view returns(uint256) {
-        if (pendingAmount > 0 && stakeCount > 0 && totalDistribution > 0 && balances[_address] > 0) {
+        if (stakeCount > 0 && totalDistribution > 0 && balances[_address] > 0) {
             uint256 reward = (totalDistribution + pendingAmount / stakeCount - rewardInfos[_address].totalDistribution) * balances[_address];
             return reward;
         } else {
