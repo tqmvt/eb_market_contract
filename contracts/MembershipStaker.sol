@@ -29,11 +29,11 @@ UUPSUpgradeable {
 
      uint64 private constant VIP_ID = 2;
      IERC1155 private membershipContract;
-     bool private isInitPeriod;
+     bool internal isInitPeriod;
 
-    uint256 private stakeCount;
-    EnumerableSetUpgradeable.AddressSet private stakers;    
-    mapping(address => uint) private balances;
+    uint256 internal stakeCount;
+    EnumerableSetUpgradeable.AddressSet internal stakers;    
+    mapping(address => uint) internal balances;
     
     CountersUpgradeable.Counter public rewardsId;
     uint256 public epochLength;
@@ -57,7 +57,7 @@ UUPSUpgradeable {
         override
     {}
 
-    function stake(uint256 amount) override external {
+    function stake(uint256 amount) override virtual external {
         require(amount > 0, "invalid amount");
         require(membershipContract.balanceOf(msg.sender, VIP_ID) >= amount, "invalid balance");
         balances[msg.sender] = balances[msg.sender] + amount;
@@ -68,7 +68,7 @@ UUPSUpgradeable {
         emit MembershipStaked(msg.sender, balances[msg.sender]);
     }
 
-    function unstake(uint256 amount) override external nonReentrant {
+    function unstake(uint256 amount) override virtual external nonReentrant {
         require(balances[msg.sender] >= amount, "invalid amount");
         membershipContract.safeTransferFrom(address(this), msg.sender, VIP_ID, amount, "");
         balances[msg.sender] = balances[msg.sender] - amount;
@@ -119,7 +119,7 @@ UUPSUpgradeable {
     }
 
     //Pool
-    function updatePool() public {
+    function updatePool() public virtual {
         if(isInitPeriod) return;
         if(address(curPool) == address(0) || curPool.isClosed()){
             (address[] memory accounts, uint256[] memory amounts) = currentStaked();
@@ -150,12 +150,12 @@ UUPSUpgradeable {
         return rewardsId.current();
     }
 
-    function periodEnd() public view returns (uint256){
+    function periodEnd() public virtual view returns (uint256){
         if(address(curPool) == address(0)) return 0;
         return curPool.endTime();
     }
 
-    function poolBalance() public view returns (uint256){
+    function poolBalance() public virtual view returns (uint256){
         if(address(curPool) != address(0)){ 
             return curPool.totalReceived();
         } else {
@@ -163,7 +163,7 @@ UUPSUpgradeable {
         }
     }
 
-    function harvest(address payable _address) external {
+    function harvest(address payable _address) external virtual{
         if(address(completedPool) != address(0)){
             completedPool.release(_address);
         }
@@ -175,8 +175,16 @@ UUPSUpgradeable {
         epochLength = _length;
     }
 
-    function endInitPeriod() external onlyOwner {
+    function endInitPeriod() external virtual onlyOwner {
         isInitPeriod = false;
         updatePool();
+    }
+
+    function getVIPID() internal pure returns(uint64){
+        return VIP_ID;
+    }
+
+    function getMemberShipAddress() internal view returns(IERC1155){
+        return membershipContract;
     }
 }
