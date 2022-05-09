@@ -2301,6 +2301,249 @@
           }
         }
       }
+    },
+    "80f42d12c0437198dd0c16ce19b2081ca263dc6f08d85b477f842d9379ae47c6": {
+      "address": "0x76B0aeA6B5be201909B60EF0BB7801F82ab61eC7",
+      "txHash": "0x061ec931d73b583eea3dd30bbced66856c0e90ce18630c46b74d2b55e2dd82fc",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:37"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:42"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:36"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:82"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:68"
+          },
+          {
+            "contract": "ERC1155ReceiverUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol:27"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:215"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:81"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "membershipContract",
+            "type": "t_contract(IERC1155)5398",
+            "src": "contracts/MembershipStaker.sol:31"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "isInitPeriod",
+            "type": "t_bool",
+            "src": "contracts/MembershipStaker.sol:32"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "stakeCount",
+            "type": "t_uint256",
+            "src": "contracts/MembershipStaker.sol:34"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "stakers",
+            "type": "t_struct(AddressSet)3152_storage",
+            "src": "contracts/MembershipStaker.sol:35"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/MembershipStaker.sol:36"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "rewardsId",
+            "type": "t_struct(Counter)2318_storage",
+            "src": "contracts/MembershipStaker.sol:38"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "epochLength",
+            "type": "t_uint256",
+            "src": "contracts/MembershipStaker.sol:39"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "pools",
+            "type": "t_array(t_contract(RewardsPool)14144)dyn_storage",
+            "src": "contracts/MembershipStaker.sol:40"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "curPool",
+            "type": "t_contract(RewardsPool)14144",
+            "src": "contracts/MembershipStaker.sol:41"
+          },
+          {
+            "contract": "MembershipStaker",
+            "label": "completedPool",
+            "type": "t_contract(RewardsPool)14144",
+            "src": "contracts/MembershipStaker.sol:42"
+          },
+          {
+            "contract": "MembershipStakerV2",
+            "label": "pendingAmount",
+            "type": "t_uint256",
+            "src": "contracts/MembershipStakerV2.sol:16"
+          },
+          {
+            "contract": "MembershipStakerV2",
+            "label": "totalDistribution",
+            "type": "t_uint256",
+            "src": "contracts/MembershipStakerV2.sol:17"
+          },
+          {
+            "contract": "MembershipStakerV2",
+            "label": "rewardInfos",
+            "type": "t_mapping(t_address,t_struct(RewardInfo)12091_storage)",
+            "src": "contracts/MembershipStakerV2.sol:19"
+          },
+          {
+            "contract": "MembershipStakerV2",
+            "label": "rewardsPaid",
+            "type": "t_uint256",
+            "src": "contracts/MembershipStakerV2.sol:20"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_struct(RewardInfo)12091_storage)": {
+            "label": "mapping(address => struct MembershipStakerV2.RewardInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(RewardInfo)12091_storage": {
+            "label": "struct MembershipStakerV2.RewardInfo",
+            "members": [
+              {
+                "label": "totalDistribution",
+                "type": "t_uint256"
+              },
+              {
+                "label": "totalReward",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_contract(IERC1155)5398": {
+            "label": "contract IERC1155"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_struct(AddressSet)3152_storage": {
+            "label": "struct EnumerableSetUpgradeable.AddressSet",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)2851_storage"
+              }
+            ]
+          },
+          "t_struct(Set)2851_storage": {
+            "label": "struct EnumerableSetUpgradeable.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)"
+              }
+            ]
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_struct(Counter)2318_storage": {
+            "label": "struct CountersUpgradeable.Counter",
+            "members": [
+              {
+                "label": "_value",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_array(t_contract(RewardsPool)14144)dyn_storage": {
+            "label": "contract RewardsPool[]"
+          },
+          "t_contract(RewardsPool)14144": {
+            "label": "contract RewardsPool"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
     }
   }
 }
